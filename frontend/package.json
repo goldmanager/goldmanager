@@ -24,7 +24,7 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "eslint": "^8.56.2",
-    "eslint-plugin-vue": "^9.27.0"
+    "eslint-plugin-vue": "^10.0.0"
   },
   "eslintConfig": {
     "root": true,
