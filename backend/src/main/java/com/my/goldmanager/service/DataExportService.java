@@ -23,15 +23,12 @@ import java.util.zip.DeflaterOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.my.goldmanager.service.dataexpimp.DataExportImportCryptoUtil;
 import com.my.goldmanager.service.dataexpimp.DataExporter;
 import com.my.goldmanager.service.entity.ExportData;
 import com.my.goldmanager.service.exception.ValidationException;
@@ -42,10 +39,7 @@ import com.my.goldmanager.service.exception.ValidationException;
 @Component
 public class DataExportService {
 
-	private static final String ENCRYPTION_ALG = "AES";
-	private static final String ENCRYPTION_CIPHER_ALG = "AES/GCM/NoPadding";
-	private static final String SECRETKEY_ALG = "PBKDF2WithHmacSHA256";
-	private static final int KEY_LENGTH = 256;
+
 	private static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
 	private static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
 	private static final SecureRandom random = new SecureRandom();
@@ -75,12 +69,9 @@ public class DataExportService {
 		byte[] iv = new byte[16];
 		random.nextBytes(iv);
 
-		SecretKey key = generateKeyFromPassword(encryptionPassword, salt);
+		SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-		Cipher cipher = Cipher.getInstance(ENCRYPTION_CIPHER_ALG);
-
-		GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
-		cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
+		Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.ENCRYPT_MODE);
 
 		ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
 		try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
@@ -105,8 +96,6 @@ public class DataExportService {
 
 	}
 
-
-
 	public static byte[] longToByteArray(long value) {
 		byte[] byteArray = new byte[8];
 		for (int i = 0; i < 8; i++) {
@@ -121,16 +110,5 @@ public class DataExportService {
 		random.nextBytes(salt);
 		return salt;
 	}
-
-	private static SecretKey generateKeyFromPassword(String password, byte[] salt) throws Exception {
-
-		int iterations = 65536;
-
-
-		PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, KEY_LENGTH);
-		SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRETKEY_ALG);
-		byte[] keyBytes = factory.generateSecret(spec).getEncoded();
-
-		return new SecretKeySpec(keyBytes, ENCRYPTION_ALG);
-	}
 }
+
