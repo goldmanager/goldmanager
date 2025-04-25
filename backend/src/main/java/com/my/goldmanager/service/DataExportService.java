@@ -15,6 +15,7 @@
 package com.my.goldmanager.service;
 
 import java.io.ByteArrayOutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -40,8 +41,6 @@ import com.my.goldmanager.service.exception.ValidationException;
  */
 @Component
 public class DataExportService {
-
-	private static final SecureRandom random = new SecureRandom();
 
 	private static final String ENCRYPTION_ALG = "AES";
 	private static final String ENCRYPTION_CIPHER_ALG = "AES/GCM/NoPadding";
@@ -72,7 +71,7 @@ public class DataExportService {
 		ExportData exportData = dataExporter.exportData();
 		byte[] salt = generateSalt();
 		byte[] iv = new byte[16];
-		random.nextBytes(iv);
+		SecureRandom.getInstanceStrong().nextBytes(iv);
 
 		SecretKey key = generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
@@ -114,10 +113,10 @@ public class DataExportService {
 		return byteArray;
 	}
 
-	private static byte[] generateSalt() {
+	private static byte[] generateSalt() throws NoSuchAlgorithmException {
 
 		byte[] salt = new byte[16];
-		random.nextBytes(salt);
+		SecureRandom.getInstanceStrong().nextBytes(salt);
 		return salt;
 	}
 
