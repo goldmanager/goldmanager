@@ -40,8 +40,8 @@ import com.my.goldmanager.service.exception.ValidationException;
 public class DataExportService {
 
 
-	private static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
-	private static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
+	public static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
+	public static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
 	private static final SecureRandom random = new SecureRandom();
 
 	@Autowired
