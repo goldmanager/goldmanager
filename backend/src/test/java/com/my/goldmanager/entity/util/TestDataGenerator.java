@@ -16,11 +16,6 @@ import com.my.goldmanager.entity.TestData;
 import com.my.goldmanager.entity.Unit;
 import com.my.goldmanager.entity.UserLogin;
 
-/**
- * Generates testdata to be imported into the database during a spring boot
- * test. The generated testdata is ment to be committed in the test resources
- * directory
- */
 public class TestDataGenerator {
 	private static final PasswordEncoderImpl passwordEncoder = new PasswordEncoderImpl();
 	private static final SecureRandom random = new SecureRandom();
@@ -29,25 +24,27 @@ public class TestDataGenerator {
 		// static class
 	}
 
-	public static TestData generateTestData() {
-		List<UserLogin> userlogins = new LinkedList<UserLogin>();
-		UserLogin user1 = new UserLogin();
-		user1.setActive(true);
-		user1.setPassword(passwordEncoder.encode("Test1245"));
-		user1.setUserid("user1");
-		userlogins.add(user1);
+	public static TestData generateTestData(TestDataConfig config) {
+		if (config == null) {
+			config = new TestDataConfig(); // Use default configuration
+		}
 
-		UserLogin user2 = new UserLogin();
-		user2.setActive(false);
-		user2.setPassword(passwordEncoder.encode("Testagaghgha6677"));
-		user2.setUserid("user2");
-		userlogins.add(user2);
+		List<UserLogin> userlogins = new LinkedList<>();
+		// Create user logins
+		for (String user : config.getUserLogins().keySet()) {
+			UserLogin userLogin = new UserLogin();
+			userLogin.setActive(true);
+			userLogin.setPassword(passwordEncoder.encode(config.getUserLogins().get(user)));
+			userLogin.setUserid(user);
+			userlogins.add(userLogin);
+		}
 
-		List<Unit> units = new LinkedList<Unit>();
+		List<Unit> units = new LinkedList<>();
+		// Create units
+
 		Unit oz = new Unit();
 		oz.setFactor(1);
 		oz.setName("Oz");
-
 		units.add(oz);
 
 		Unit gramm = new Unit();
@@ -55,7 +52,7 @@ public class TestDataGenerator {
 		gramm.setName("Gramm");
 		units.add(gramm);
 
-		List<Material> materials = new LinkedList<Material>();
+		List<Material> materials = new LinkedList<>();
 		Material gold = new Material();
 		gold.setName("Gold");
 		gold.setEntryDate(new Date());
@@ -78,7 +75,7 @@ public class TestDataGenerator {
 		materials.add(platinum);
 
 		List<ItemStorage> itemStorages = new LinkedList<>();
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < config.getItemStorageCount(); i++) {
 			ItemStorage itemStorage = new ItemStorage();
 			itemStorage.setName("MyStorage " + i);
 			if (i % 3 == 0) {
@@ -92,7 +89,7 @@ public class TestDataGenerator {
 			itemStorages.add(itemStorage);
 		}
 
-		List<ItemType> itemTypes = new LinkedList<ItemType>();
+		List<ItemType> itemTypes = new LinkedList<>();
 
 		ItemType goldBar = new ItemType();
 		goldBar.setModifier(1.0f);
@@ -112,7 +109,6 @@ public class TestDataGenerator {
 		goldCoin.setModifier(1.0f);
 		goldCoin.setMaterial(gold);
 		goldCoin.setName("Cold Coin");
-
 		goldCoin.setId(UUID.randomUUID().toString());
 		itemTypes.add(goldCoin);
 
@@ -120,14 +116,14 @@ public class TestDataGenerator {
 		silverBar.setModifier(1.0f);
 		silverBar.setMaterial(silver);
 		silverBar.setName("SilverBar");
-
 		silverBar.setId(UUID.randomUUID().toString());
 		itemTypes.add(silverBar);
+
 		List<Item> items = new LinkedList<>();
 
 		// Bars
-		List<Float> ozSizes = List.of(0.25f, 0.5f, 1f, 1.5f, 2.0f);
-		List<Float> grammSizes = List.of(10f, 1f, 5f, 20f, 50f, 100f);
+		List<Float> ozSizes = config.getDefaultOzSizes();
+		List<Float> grammSizes = config.getDefaultGrammSizes();
 
 		// 999 GoldBars
 		generateItems(oz, itemStorages, goldBar, items, ozSizes, 100);
@@ -145,7 +141,7 @@ public class TestDataGenerator {
 		ozSizes = List.of(0.125f, 0.25f, 0.5f, 1f);
 		generateItems(oz, itemStorages, goldCoin, items, ozSizes, 50);
 
-		int historySize = 3000;
+		int historySize = config.getHistorySize();
 		List<MaterialHistory> materialHistories = new LinkedList<>();
 		for (Material m : materials) {
 			int number = 0;
@@ -177,7 +173,6 @@ public class TestDataGenerator {
 			List<Float> sizes, int initialItemCount) {
 		int current = 1;
 		for (Float size : sizes) {
-
 			int selectedStorage = random.nextInt(itemStorages.size() + 1);
 			Item item = new Item();
 			item.setId(UUID.randomUUID().toString());

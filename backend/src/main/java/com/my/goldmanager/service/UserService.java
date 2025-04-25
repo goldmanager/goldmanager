@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.entity.UserLogin;
@@ -46,6 +47,7 @@ public class UserService {
 	 * @param password
 	 * @throws ValidationException
 	 */
+	@Transactional
 	public void create(String username, String password) throws ValidationException {
 
 		if (username == null || username.isBlank() || username.trim().contains(" ") || username.length()>255) {
@@ -71,10 +73,11 @@ public class UserService {
 	 * @throws ValidationException
 	 */
 	public boolean deleteUser(String username) throws ValidationException {
-		return deleteUser(username, false);
+		return deleteUserInternal(username, false);
 	}
 
 	/**
+	 * Deletes the specified user.
 	 * 
 	 * @param username
 	 * @param force
@@ -82,9 +85,20 @@ public class UserService {
 	 * @throws ValidationException
 	 */
 	public boolean deleteUser(String username, boolean force) throws ValidationException {
+		return deleteUserInternal(username, force);
+	}
+	/**
+	 * 
+	 * @param username
+	 * @param force
+	 * @return
+	 * @throws ValidationException
+	 */
+	@Transactional
+	private boolean deleteUserInternal(String username, boolean force) throws ValidationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (!force && authentication != null && username.equals(authentication.getName())) {
-			throw new ValidationException("Users must not delete them self.");
+			throw new ValidationException("Users must not delete themselves.");
 		}
 		if (userLoginRepository.existsById(username)) {
 			userLoginRepository.deleteById(username);
@@ -102,6 +116,7 @@ public class UserService {
 	 * @return
 	 * @throws ValidationException
 	 */
+	@Transactional
 	public boolean updatePassword(String username, String newPassword) throws ValidationException {
 
 		if (username == null || username.isBlank()) {
@@ -126,10 +141,11 @@ public class UserService {
 	 * @return
 	 * @throws ValidationException
 	 */
+	@Transactional
 	public boolean updateUserActivation(String username, boolean active) throws ValidationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null && username.equals(authentication.getName())) {
-			throw new ValidationException("Users must not activate or deactivate them self.");
+			throw new ValidationException("Users must not activate or deactivate themselves.");
 		}
 
 		Optional<UserLogin> userlogin = userLoginRepository.findById(username);

@@ -199,4 +199,28 @@ public class AuthControllerSpringBootTest {
 
 	}
 
+	@Test
+	public void testRefreshWithRemovedUser() throws JsonProcessingException, Exception {
+		userService.create("user", "password");
+		AuthRequest authRequest = new AuthRequest();
+		authRequest.setUsername("user");
+		authRequest.setPassword("password");
+
+		String token = mockMvc
+				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(authRequest)))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+		userService.deleteUser("user", true);
+
+		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
+		assertNotNull(jwtTokenInfo);
+		assertNotNull(jwtTokenInfo.getEpiresOn());
+		assertNotNull(jwtTokenInfo.getRefreshAfter());
+		assertNotNull(jwtTokenInfo.getToken());
+		mockMvc
+				.perform(get("/api/auth/refresh").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
+				.andExpect(status().is(403));
+
+	}
 }

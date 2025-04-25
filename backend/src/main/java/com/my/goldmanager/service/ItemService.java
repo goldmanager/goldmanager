@@ -20,9 +20,11 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.repository.ItemRepository;
+import com.my.goldmanager.service.exception.DuplicateItemException;
 import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
@@ -31,42 +33,43 @@ public class ItemService {
 	@Autowired
 	private ItemRepository repository;
 
+	@Transactional
 	public Item create(Item item) throws ValidationException {
-		if (item.getName() == null || item.getName().isBlank()) {
-			throw new ValidationException("Item name is mandatory.");
-		}
+		validateItemName(item);
 		try {
 			return repository.save(item);
 		} catch (DataIntegrityViolationException e) {
 
-			throw new RuntimeException("An item with the same name already exists.", e);
+			throw new DuplicateItemException("An item with the same name already exists.", e);
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public List<Item> list() {
 		return repository.findAll();
 	}
 
+	@Transactional
 	public Optional<Item> update(String id, Item item) throws ValidationException {
 		if (repository.existsById(id)) {
-			if (item.getName() == null || item.getName().isBlank()) {
-				throw new ValidationException("Item name is mandatory.");
-			}
+			validateItemName(item);
 			try {
 				item.setId(id);
 				return Optional.of(repository.save(item));
 			} catch (DataIntegrityViolationException e) {
-				throw new RuntimeException("An an item type with the same name already exists.", e);
+				throw new DuplicateItemException("An an item type with the same name already exists.", e);
 			}
 		}
 		return Optional.empty();
 	}
 
+	@Transactional(readOnly = true)
 	public Optional<Item> getById(String id) {
 
 		return repository.findById(id);
 	}
 
+	@Transactional
 	public boolean delete(String id) {
 		if (repository.existsById(id)) {
 			repository.deleteById(id);
@@ -75,4 +78,9 @@ public class ItemService {
 		return false;
 	}
 
+	private void validateItemName(Item item) throws ValidationException {
+		if (item.getName() == null || item.getName().isBlank()) {
+			throw new ValidationException("Item name is mandatory.");
+		}
+	}
 }

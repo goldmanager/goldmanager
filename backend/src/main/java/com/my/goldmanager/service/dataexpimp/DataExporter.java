@@ -18,7 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,10 +39,13 @@ import com.my.goldmanager.service.VersionInfoService;
 import com.my.goldmanager.service.entity.ExportData;
 import com.my.goldmanager.service.entity.ExportEntities;
 import com.my.goldmanager.service.exception.ExportDataException;
+import com.my.goldmanager.service.exception.InvalidAlgorithmException;
 import com.my.goldmanager.service.exception.VersionLoadingException;
 
-@Component
+@Service
 public class DataExporter {
+
+
 
 	@Autowired
 	private MaterialRepository materialRepository;
@@ -64,6 +68,9 @@ public class DataExporter {
 	@Autowired
 	private VersionInfoService versionInfoService;
 
+	@Autowired
+	private HashUtil hashUtil;
+
 	/**
 	 * Exports Data from Database
 	 * 
@@ -71,6 +78,7 @@ public class DataExporter {
 	 * @throws ExportDataException
 	 * 
 	 */
+	@Transactional(readOnly = true)
 	public ExportData exportData() throws ExportDataException {
 		ExportData result = new ExportData();
 		try {
@@ -85,11 +93,14 @@ public class DataExporter {
 			exportEntities.setItemTypes(simplifyItemTypes(itemTypeRepository.findAll()));
 			exportEntities.setItems(simplifyItems(itemRepository.findAll()));
 			result.setExportEntityData(objectMapper.writeValueAsBytes(exportEntities));
+			hashUtil.hashData(result);
 			return result;
 		} catch (VersionLoadingException e) {
 			throw new ExportDataException("Can not load version information for exported data.", e);
 		} catch (JsonProcessingException e) {
 			throw new ExportDataException("Serialisation of exported entities has failed", e);
+		} catch (InvalidAlgorithmException e) {
+			throw new ExportDataException("Hash generation for exported data has failed", e);
 		}
 
 	}

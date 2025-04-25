@@ -48,6 +48,7 @@ public class DataExportService {
 	private static final int KEY_LENGTH = 256;
 	private static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
 	private static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
+	private static final SecureRandom random = new SecureRandom();
 
 	@Autowired
 	private DataExporter dataExporter;
@@ -62,6 +63,7 @@ public class DataExportService {
 	 * @return
 	 * @throws Exception
 	 */
+
 	public byte[] exportData(String encryptionPassword) throws Exception {
 		if (encryptionPassword == null || encryptionPassword.isBlank()) {
 			throw new ValidationException("Encryption password is manadatory.");
@@ -71,7 +73,7 @@ public class DataExportService {
 		ExportData exportData = dataExporter.exportData();
 		byte[] salt = generateSalt();
 		byte[] iv = new byte[16];
-		SecureRandom.getInstanceStrong().nextBytes(iv);
+		random.nextBytes(iv);
 
 		SecretKey key = generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
@@ -116,7 +118,7 @@ public class DataExportService {
 	private static byte[] generateSalt() throws NoSuchAlgorithmException {
 
 		byte[] salt = new byte[16];
-		SecureRandom.getInstanceStrong().nextBytes(salt);
+		random.nextBytes(salt);
 		return salt;
 	}
 

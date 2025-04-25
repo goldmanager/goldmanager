@@ -26,6 +26,8 @@ import com.my.goldmanager.service.VersionInfoService;
 import com.my.goldmanager.service.entity.ExportData;
 import com.my.goldmanager.service.entity.ExportEntities;
 import com.my.goldmanager.service.exception.ExportDataException;
+import com.my.goldmanager.service.exception.InvalidAlgorithmException;
+import com.my.goldmanager.service.exception.InvalidHashException;
 import com.my.goldmanager.service.exception.VersionLoadingException;
 
 @SpringBootTest
@@ -56,7 +58,11 @@ public class DataExporterSpringBootTest {
 	@Autowired
 	private VersionInfoService versionInfoService;
 
+	@Autowired
+	private HashUtil hashUtil;
+
 	private TestData testData = null;
+
 
 	@BeforeEach
 	public void setupTestData() throws IOException {
@@ -92,15 +98,19 @@ public class DataExporterSpringBootTest {
 
 	@Test
 	public void testExportSuccess()
-			throws ExportDataException, VersionLoadingException, StreamReadException, DatabindException, IOException {
+			throws ExportDataException, VersionLoadingException, StreamReadException, DatabindException, IOException,
+			InvalidAlgorithmException, InvalidHashException {
 		ExportData exportData = dataExporter.exportData();
 		Assertions.assertNotNull(exportData);
 		Assertions.assertEquals(versionInfoService.getVersion().toString(), exportData.getVersion());
 		Assertions.assertNotNull(exportData.getExportEntityData());
-
+		Assertions.assertNotNull(exportData.getHash());
+		Assertions.assertNotNull(exportData.getHashAlgorithm());
+		hashUtil.validateHash(exportData);
 		ExportDataAssertions.assertEquals(testData,
 				objectMapper.readValue(exportData.getExportEntityData(), ExportEntities.class), true);
 
 	}
+
 
 }

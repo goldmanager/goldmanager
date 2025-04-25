@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.my.goldmanager.entity.MaterialHistory;
 import com.my.goldmanager.repository.MaterialHistoryRepository;
@@ -32,18 +33,22 @@ public class MaterialHistoryService {
 	@Autowired
 	private MaterialHistoryRepository repository;
 
+	@Transactional(readOnly = true)
 	public List<MaterialHistory> getAll() {
 		return repository.findAll();
 	}
 
+	@Transactional(readOnly = true)
 	public Optional<MaterialHistory> getbyId(String id) {
 		return repository.findById(id);
 	}
 
+	@Transactional(readOnly = true)
 	public List<MaterialHistory> findAllByMaterial(String materialId) {
 		return repository.findByMaterial(materialId);
 	}
 
+	@Transactional
 	public boolean deleteById(String id) {
 		if (repository.existsById(id)) {
 			repository.deleteById(id);
@@ -53,6 +58,7 @@ public class MaterialHistoryService {
 		return false;
 	}
 
+	@Transactional
 	public void deleteAllByMaterial(String materialId) {
 		repository.flush();
 		repository.deleteAllInBatch(findAllByMaterial(materialId));
@@ -66,6 +72,7 @@ public class MaterialHistoryService {
 	 * @param startDate
 	 * @ @throws ValidationException
 	 */
+	@Transactional
 	public void deleteByMaterialAndDateRange(String materialID, Date startDate, Date endDate)
 			throws ValidationException {
 

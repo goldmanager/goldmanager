@@ -35,4 +35,18 @@ public class ExportData {
 	 * The serialized {@link ExportEntities}
 	 */
 	private byte[] exportEntityData;
+
+	@Getter
+	@Setter
+	/**
+	 * the algorithm used for hashing the data 
+	 */
+	private String hashAlgorithm;
+
+	@Getter
+	@Setter
+	/**
+	 * The hash of the serialized {@link ExportEntities}
+	 */
+	private byte[] hash;
 }

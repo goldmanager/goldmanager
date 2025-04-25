@@ -24,6 +24,8 @@ import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.repository.ItemRepository;
@@ -34,7 +36,7 @@ import com.my.goldmanager.rest.entity.PriceList;
 import com.my.goldmanager.service.util.PriceCalculatorUtil;
 
 /**
- * Calcualates the current Prices
+ * Calculates the current Prices
  */
 @Service
 public class PriceService {
@@ -42,83 +44,64 @@ public class PriceService {
 	@Autowired
 	private ItemRepository itemRepository;
 
+	@Transactional(readOnly = true)
 	public PriceList listAll() {
-
 		return createPriceList(itemRepository.findAll());
-
 	}
 
+	@Transactional(readOnly = true)
 	public PriceGroupList groupByMaterial() {
-		Map<String, PriceGroup> result = new TreeMap<>();
-		List<Item> items = itemRepository.findAll();
-		items.forEach(item -> addToPriceGroupsbyMaterial(item, result));
-		PriceGroupList priceGroupList = new PriceGroupList();
-		priceGroupList.setPriceGroups(new LinkedList<>(result.values())) ;
-		return priceGroupList;
+		return groupBy(item -> item.getItemType().getMaterial().getName());
 	}
 
-	public PriceGroupList  groupByItemType() {
-		Map<String, PriceGroup> result = new TreeMap<>();
-		List<Item> items = itemRepository.findAll();
-		items.forEach(item -> addToPriceGroupsbyItemType(item, result));
-		PriceGroupList priceGroupList = new PriceGroupList();
-		priceGroupList.setPriceGroups(new LinkedList<>(result.values())) ;
-		return priceGroupList;
+	@Transactional(readOnly = true)
+	public PriceGroupList groupByItemType() {
+		return groupBy(item -> item.getItemType().getName());
 	}
 
+	@Transactional(readOnly = true)
 	public Optional<PriceList> listForMaterial(String materialId) {
-
 		List<Item> items = itemRepository.findByMaterialId(materialId);
-
-		if (items != null && !items.isEmpty()) {
-			return Optional.of(createPriceList(items));
-		}
-		return Optional.empty();
+		return CollectionUtils.isEmpty(items) ? Optional.empty() : Optional.of(createPriceList(items));
 	}
+
+	@Transactional(readOnly = true)
 	public Optional<PriceList> listForStorage(String storageId) {
-
 		List<Item> items = itemRepository.findByItemStorageId(storageId);
-
-		if (items != null && !items.isEmpty()) {
-			return Optional.of(createPriceList(items));
-		}
-		return Optional.empty();
+		return CollectionUtils.isEmpty(items) ? Optional.empty() : Optional.of(createPriceList(items));
 	}
 
-	private void addToPriceGroupsbyMaterial(Item item, Map<String, PriceGroup> priceGroupMap) {
-		PriceGroup priceGroup = priceGroupMap.get(item.getItemType().getMaterial().getName());
-		if (priceGroup == null) {
-			priceGroup = new PriceGroup();
-			priceGroup.setGroupName(item.getItemType().getMaterial().getName());
-			priceGroupMap.put(item.getItemType().getMaterial().getName(), priceGroup);
-		}
-		if (priceGroup.getPrices() == null) {
-			priceGroup.setPrices(new LinkedList<Price>());
-		}
-		addItemToPriceGroup(item, priceGroup);
+	@Transactional(readOnly = true)
+	public Optional<Price> getPriceofItem(String itemId) {
+		return itemRepository.findById(itemId).map(this::calculatePrice);
 	}
 
-	private void addToPriceGroupsbyItemType(Item item, Map<String, PriceGroup> priceGroupMap) {
-		PriceGroup priceGroup = priceGroupMap.get(item.getItemType().getName());
-		if (priceGroup == null) {
-			priceGroup = new PriceGroup();
-			priceGroup.setGroupName(item.getItemType().getName());
-			priceGroupMap.put(item.getItemType().getName(), priceGroup);
-		}
-		if (priceGroup.getPrices() == null) {
-			priceGroup.setPrices(new LinkedList<Price>());
-		}
-		addItemToPriceGroup(item, priceGroup);
+	private PriceGroupList groupBy(java.util.function.Function<Item, String> groupKeyExtractor) {
+		Map<String, PriceGroup> result = new TreeMap<>();
+		List<Item> items = itemRepository.findAll();
+		items.forEach(item -> {
+			String key = groupKeyExtractor.apply(item);
+			PriceGroup priceGroup = result.computeIfAbsent(key, k -> {
+				PriceGroup newGroup = new PriceGroup();
+				newGroup.setGroupName(k);
+				newGroup.setPrices(new LinkedList<>());
+				return newGroup;
+			});
+			addItemToPriceGroup(item, priceGroup);
+		});
+		PriceGroupList priceGroupList = new PriceGroupList();
+		priceGroupList.setPriceGroups(new LinkedList<>(result.values()));
+		return priceGroupList;
 	}
 
 	private void addItemToPriceGroup(Item item, PriceGroup priceGroup) {
 		Price price = calculatePrice(item);
-
 		priceGroup.getPrices().add(price);
 		BigDecimal totalPrice = new BigDecimal(priceGroup.getTotalPrice() + price.getPriceTotal()).setScale(2,
 				RoundingMode.HALF_DOWN);
 		priceGroup.setTotalPrice(totalPrice.floatValue());
-		BigDecimal amount = new BigDecimal( priceGroup.getAmount() + (Float.valueOf(item.getItemCount()) * item.getAmount() * item.getUnit().getFactor()))
+		BigDecimal amount = new BigDecimal(
+				priceGroup.getAmount() + (item.getItemCount() * item.getAmount() * item.getUnit().getFactor()))
 				.setScale(2, RoundingMode.HALF_DOWN);
 		priceGroup.setAmount(amount.floatValue());
 	}
@@ -126,34 +109,25 @@ public class PriceService {
 	private PriceList createPriceList(List<Item> items) {
 		PriceList result = new PriceList();
 		result.setPrices(new LinkedList<>());
-
-		items.stream().forEach(item -> result.getPrices().add(calculatePrice(item)));
+		items.forEach(item -> result.getPrices().add(calculatePrice(item)));
 		calculateSummaryPrice(result);
-		
 		return result;
 	}
 
-	public Optional<Price> getPriceofItem(String itemId) {
-		Optional<Item> optional = itemRepository.findById(itemId);
-		if (optional.isPresent()) {
-			return Optional.of(calculatePrice(optional.get()));
-		}
-		return Optional.empty();
-	}
-
 	private static void calculateSummaryPrice(PriceList priceList) {
-
-		priceList.getPrices().stream().forEach(p -> priceList.setTotalPrice(priceList.getTotalPrice() + p.getPriceTotal()));
-		priceList.setTotalPrice(new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
+		priceList.getPrices().forEach(p -> priceList.setTotalPrice(priceList.getTotalPrice() + p.getPriceTotal()));
+		priceList.setTotalPrice(
+				new BigDecimal(priceList.getTotalPrice()).setScale(2, RoundingMode.HALF_DOWN).floatValue());
 	}
 
-	private static Price calculatePrice(Item item) {
+	private Price calculatePrice(Item item) {
 		Price result = new Price();
 		if (item != null) {
 			result.setItem(item);
-
-			result.setPrice(PriceCalculatorUtil.calculateSingleItemPrice(item, item.getItemType().getMaterial().getPrice()));
-			result.setPriceTotal(PriceCalculatorUtil.calculateTotalItemPrice(item, item.getItemType().getMaterial().getPrice()));
+			result.setPrice(
+					PriceCalculatorUtil.calculateSingleItemPrice(item, item.getItemType().getMaterial().getPrice()));
+			result.setPriceTotal(
+					PriceCalculatorUtil.calculateTotalItemPrice(item, item.getItemType().getMaterial().getPrice()));
 		}
 		return result;
 	}

@@ -67,7 +67,8 @@ public class AuthenticationService {
 		return result;
 	}
 
-	public JWTTokenInfo refrehsJWTToken(String username) {
+	public JWTTokenInfo refreshJWTToken(String username) {
+
 		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(username);
 		return buildJWTToken(username, keyInfo);
 
@@ -76,6 +77,7 @@ public class AuthenticationService {
 
 	public void logout(String username) {
 		authKeyInfoService.removeKeyInfosForUserName(username);
+
 	}
 
 	public void logoutAll() {

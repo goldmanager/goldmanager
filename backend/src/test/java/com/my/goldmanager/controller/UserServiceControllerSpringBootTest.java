@@ -94,7 +94,7 @@ public class UserServiceControllerSpringBootTest {
 		
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not delete them self.", errorResponse.getMessage());
+		assertEquals("Users must not delete themselves.", errorResponse.getMessage());
 
 	}
 
@@ -172,7 +172,7 @@ public class UserServiceControllerSpringBootTest {
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 		
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not activate or deactivate them self.", errorResponse.getMessage());
+		assertEquals("Users must not activate or deactivate themselves.", errorResponse.getMessage());
 
 		updateUserStatusRequest.setActive(false);
 		body = mockMvc.perform(TestHTTPClient.doPut("/userService/setStatus/" +  TestHTTPClient.username)
@@ -182,7 +182,7 @@ public class UserServiceControllerSpringBootTest {
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not activate or deactivate them self.", errorResponse.getMessage());
+		assertEquals("Users must not activate or deactivate themselves.", errorResponse.getMessage());
 	}
 	@Test
 	public void testUpdateUserPasswordInvalid() throws Exception {
