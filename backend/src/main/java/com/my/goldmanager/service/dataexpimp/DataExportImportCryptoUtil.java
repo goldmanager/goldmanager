@@ -14,6 +14,9 @@
  */
 package com.my.goldmanager.service.dataexpimp;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -22,11 +25,14 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class DataExportImportCryptoUtil {
-	private static final String ENCRYPTION_ALG = "AES";
-	private static final String ENCRYPTION_CIPHER_ALG = "AES/GCM/NoPadding";
-	private static final String SECRETKEY_ALG = "PBKDF2WithHmacSHA256";
-	private static final int KEY_LENGTH = 256;
+	public static final int SALT_LENGTH = 16;
+	public static final String ENCRYPTION_ALG = "AES";
+	public static final String ENCRYPTION_CIPHER_ALG = "AES/GCM/NoPadding";
+	public static final String SECRETKEY_ALG = "PBKDF2WithHmacSHA256";
+	public static final int KEY_LENGTH = 256;
+	public static final int IV_LENGTH = 12; // 96 bits
 
+	private static final SecureRandom random = new SecureRandom();
 	private DataExportImportCryptoUtil() {
 		// Prevent instantiation
 	}
@@ -41,6 +47,12 @@ public class DataExportImportCryptoUtil {
 	 */
 	public static SecretKey generateKeyFromPassword(String password, byte[] salt) throws Exception {
 
+		if (password == null || password.isEmpty()) {
+			throw new IllegalArgumentException("Password must not be null or empty");
+		}
+		if (salt.length != SALT_LENGTH) {
+			throw new IllegalArgumentException("Salt length must be " + SALT_LENGTH + " bytes");
+		}
 		int iterations = 65536;
 
 		PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, KEY_LENGTH);
@@ -56,18 +68,48 @@ public class DataExportImportCryptoUtil {
 	 * @return
 	 */
 	public static Cipher getCipher(SecretKey key, byte[] iv, int mode) throws Exception {
-		// Create a Cipher instance for encryption
-		// AES/GCM/NoPadding is used for authenticated encryption
-		// with GCM mode and no padding
-		// The IV should be 12 bytes for GCM mode
-		if (iv.length != 12) {
-			throw new IllegalArgumentException("IV must be 12 bytes");
+
+		if (iv == null) {
+			throw new IllegalArgumentException("IV must not be null");
 		}
-		// Create a Cipher instance for encryption
+		if (iv.length > IV_LENGTH) {
+			throw new IllegalArgumentException("IV length must be " + IV_LENGTH + " bytes");
+		}
+		if (key == null) {
+			throw new IllegalArgumentException("Key must not be null");
+		}
+		if (key.getEncoded().length != KEY_LENGTH / 8) {
+			throw new IllegalArgumentException("Key length must be " + KEY_LENGTH / 8 + " bytes");
+		}
+
 		Cipher cipher = Cipher.getInstance(ENCRYPTION_CIPHER_ALG);
 
 		GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
 		cipher.init(mode, key, gcmSpec);
 		return cipher;
+	}
+
+	/**
+	 * Generates a random salt for key generation.
+	 * 
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static byte[] generateSalt() throws NoSuchAlgorithmException {
+
+		byte[] salt = new byte[SALT_LENGTH];
+		random.nextBytes(salt);
+		return salt;
+	}
+
+	/**
+	 * Generates a random IV for AES encryption.
+	 * 
+	 * @return
+	 */
+	public static byte[] generateIV() {
+		byte[] iv = new byte[IV_LENGTH];
+		random.nextBytes(iv);
+		return iv;
 	}
 }

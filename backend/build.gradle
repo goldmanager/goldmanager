@@ -4,6 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.asciidoctor.jvm.convert' version '4.0.4'
 	id 'org.cyclonedx.bom' version '2.2.0'
+	id 'jacoco' 
 }
 
 import java.util.Properties
@@ -41,13 +42,34 @@ compileJava.dependsOn generateVersionProperties
 tasks.named("classes").configure {
     dependsOn generateVersionProperties
 }
-
+ 
+ jacocoTestReport {
+       dependsOn test // Ensure tests run before generating the report
+       reports {
+           xml.required = true
+           html.required = true
+       }
+      
+ }
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
+ jacocoTestCoverageVerification {
+      onlyIf { !project.hasProperty('skipTests') }
+      dependsOn jacocoTestReport
+       violationRules {
+           rule {
+               limit {
+                   counter = 'LINE' // Check line coverage
+                   value = 'COVEREDRATIO'
+                   minimum = 0.80 // Set minimum coverage to 80%
+               }
+           }
+       }
+   }
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -115,6 +137,11 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+tasks.check {
+	   onlyIf { !project.hasProperty('skipTests') }
+       dependsOn jacocoTestCoverageVerification
+       
+}
 tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
 	dependsOn test

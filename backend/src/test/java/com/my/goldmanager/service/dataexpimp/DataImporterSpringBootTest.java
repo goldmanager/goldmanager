@@ -252,9 +252,9 @@ public class DataImporterSpringBootTest {
 
 	@Test
 	void testPreExistingUserDeleted() throws ImportDataException, ValidationException {
-		userService.create("MyUserABC", "Uhu123!");
+		userService.create("MyUserABC", "Uhu123456!");
 
-		authenticationService.getJWTToken("MyUserABC", "Uhu123!");
+		authenticationService.getJWTToken("MyUserABC", "Uhu123456!");
 
 		// Verify that the user is logged in
 		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName("MyUserABC");

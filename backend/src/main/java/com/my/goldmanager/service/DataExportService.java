@@ -15,8 +15,6 @@
 package com.my.goldmanager.service;
 
 import java.io.ByteArrayOutputStream;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -29,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.service.dataexpimp.DataExportImportCryptoUtil;
+import com.my.goldmanager.service.dataexpimp.DataExportImportUtil;
 import com.my.goldmanager.service.dataexpimp.DataExporter;
 import com.my.goldmanager.service.entity.ExportData;
 import com.my.goldmanager.service.exception.ValidationException;
@@ -42,13 +41,15 @@ public class DataExportService {
 
 	public static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
 	public static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
-	private static final SecureRandom random = new SecureRandom();
+
 
 	@Autowired
 	private DataExporter dataExporter;
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	@Autowired
+	private PasswordPolicyValidationService passwordPolicyValidationService;
 
 	/**
 	 * Exports the Entities in encrypted and compressed format
@@ -59,15 +60,12 @@ public class DataExportService {
 	 */
 
 	public byte[] exportData(String encryptionPassword) throws Exception {
-		if (encryptionPassword == null || encryptionPassword.isBlank()) {
-			throw new ValidationException("Encryption password is manadatory.");
-		}
+		validatePassword(encryptionPassword);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
 		ExportData exportData = dataExporter.exportData();
-		byte[] salt = generateSalt();
-		byte[] iv = new byte[16];
-		random.nextBytes(iv);
+		byte[] salt = DataExportImportCryptoUtil.generateSalt();
+		byte[] iv = DataExportImportCryptoUtil.generateIV();
 
 		SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
 		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
@@ -78,16 +76,17 @@ public class DataExportService {
 			// Adding magic bytes to ensure correct encryption:
 			cout.write(body_start);
 			byte[] payload = objectMapper.writeValueAsBytes(exportData);
-			cout.write(longToByteArray(payload.length));
+			cout.write(DataExportImportUtil.longToByteArray(payload.length));
 			cout.write(payload);
 			cout.flush();
 		}
 		try (DeflaterOutputStream deflaterOutPutStream = new DeflaterOutputStream(bos, deflater)) {
 			deflaterOutPutStream.write(header_start);
-			deflaterOutPutStream.write(longToByteArray(encryptedData.size()));
+			byte[] encryptedDataPayload = encryptedData.toByteArray();
+			deflaterOutPutStream.write(DataExportImportUtil.longToByteArray(encryptedDataPayload.length));
 			deflaterOutPutStream.write(salt);
 			deflaterOutPutStream.write(iv);
-			deflaterOutPutStream.write(encryptedData.toByteArray());
+			deflaterOutPutStream.write(encryptedDataPayload);
 
 			deflaterOutPutStream.flush();
 		}
@@ -96,19 +95,15 @@ public class DataExportService {
 
 	}
 
-	public static byte[] longToByteArray(long value) {
-		byte[] byteArray = new byte[8];
-		for (int i = 0; i < 8; i++) {
-			byteArray[7 - i] = (byte) (value >> (i * 8));
+	private void validatePassword(String encryptionPassword) throws ValidationException {
+		if (encryptionPassword == null || encryptionPassword.isBlank()) {
+			throw new ValidationException("Encryption password is mandatory.");
 		}
-		return byteArray;
+		passwordPolicyValidationService.validate(encryptionPassword);
 	}
 
-	private static byte[] generateSalt() throws NoSuchAlgorithmException {
 
-		byte[] salt = new byte[16];
-		random.nextBytes(salt);
-		return salt;
-	}
+
+
 }
 

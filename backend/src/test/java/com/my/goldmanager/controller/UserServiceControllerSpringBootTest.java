@@ -65,7 +65,7 @@ public class UserServiceControllerSpringBootTest {
 	@Test
 	public void testCreateUser() throws Exception {
 		CreateUserRequest createUserRequest = new CreateUserRequest();
-		createUserRequest.setPassword("MyPass");
+		createUserRequest.setPassword("MyPass12345");
 		createUserRequest.setUsername("myUser");
 
 		mockMvc.perform(TestHTTPClient.doPost("/userService").contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +82,7 @@ public class UserServiceControllerSpringBootTest {
 	@Test
 	public void testDeleteUser() throws Exception {
 
-		userService.create("MyUser", "MyPass");
+		userService.create("MyUser", "MyPass12345");
 		mockMvc.perform(TestHTTPClient.doDelete("/userService/deleteuser/MyUser")).andExpect(status().isNoContent());
 	}
 
@@ -245,7 +245,7 @@ public class UserServiceControllerSpringBootTest {
 		userLoginRepository.save(userLogin);
 
 		CreateUserRequest createUserRequest = new CreateUserRequest();
-		createUserRequest.setPassword("MyPass");
+		createUserRequest.setPassword("MyPass12345");
 		createUserRequest.setUsername("myUser");
 
 		String body = mockMvc
