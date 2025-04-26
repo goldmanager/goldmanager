@@ -158,9 +158,6 @@ public class DataImporter {
 	private ExportEntities deserializeEntities(ExportData data) throws ImportDataException {
 
 		try {
-			if (data.getExportEntityData() == null || data.getExportEntityData().length == 0) {
-				throw new ImportDataException("Data for import is empty.");
-			}
 			return objectMapper.readValue(data.getExportEntityData(), ExportEntities.class);
 		} catch (IOException e) {
 			throw new ImportDataException("Could not deserialize entities for import", e);
