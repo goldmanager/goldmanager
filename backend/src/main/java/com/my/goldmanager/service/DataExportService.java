@@ -25,7 +25,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.service.dataexpimp.DataExportImportCryptoUtil;
@@ -36,7 +36,7 @@ import com.my.goldmanager.service.exception.ValidationException;
 /**
  * Exports all Entities from database
  */
-@Component
+@Service
 public class DataExportService {
 
 
