@@ -59,4 +59,4 @@ jobs:
 
     - name: Test Backend
       working-directory: ./backend
-      run: ./gradlew test
+      run: ./gradlew check
