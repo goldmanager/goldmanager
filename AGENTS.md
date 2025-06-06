@@ -4,6 +4,7 @@ This repository contains two sub-projects:
 
 * **backend/** – Spring Boot application built with Gradle. Java 21 is required.
 * **frontend/** – Vue 3 SPA built with Node (tested with Node 16).
+  Use Node.js 16 for local development to match the CI environment.
 
 ## Build and Test Instructions
 
@@ -41,7 +42,11 @@ This repository contains two sub-projects:
 ## Development Database
 A MariaDB instance for local development is defined in
 `backend/dev-env/compose.yaml`. Start it with Docker Compose before running the
-backend locally.
+backend locally:
+
+```bash
+docker compose -f backend/dev-env/compose.yaml up -d
+```
 
 ## Testing Requirement for Pull Requests
 After modifying backend or frontend code, run the following checks before
@@ -51,6 +56,10 @@ committing:
 2. `npm run lint` inside `frontend/`
 
 Include any relevant outputs in the PR description.
+
+## Commit Guidelines
+Use concise commit messages that start with a short imperative summary.
+Provide additional context in the body if needed.
 
 # Authentication Configurations
 The Spring Boot Application defines 3 Security Configurations:
