@@ -80,3 +80,13 @@ authentication for integration tests and is activated when running with the
 - `backend/src/test/resources/application-test.properties` configures the in-memory H2 database used during tests.
 - When a test class uses `@ActiveProfiles("test")`, Spring Boot loads `TestSecurityConfiguration` to simplify authentication for testing.
 - Run `./gradlew test` from the `backend` directory to execute all backend tests.
+
+## AGENTS.md Maintenance
+
+The instructions in this file must accurately reflect the repository. Whenever
+code or project structure described here changes, update **AGENTS.md** to match
+the new reality. Document fundamental changes, such as build steps,
+dependencies or folder layout, so future tasks have up-to-date guidance. If a
+contradiction between the repository and this document is found, correct this
+file immediately. Add any newly discovered information that helps developers
+understand or maintain the project.
