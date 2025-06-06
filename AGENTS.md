@@ -52,3 +52,16 @@ committing:
 
 Include any relevant outputs in the PR description.
 
+# Authentication Configurations
+The Spring Boot Application defines 3 Security Configurations:
+1. In main code DefaultSecurityConfiguration and DevSecurityConfiguration
+2. In test code TestSecurityConfiguration
+
+DefaultSecurityConfiguration is intended for use in productive and test environments when running with the default profile. DevSecurityConfiguration is intended for use in developer environments, e.G. when launching in Eclipse IDE or IntelliJ with profile dev.
+TestSecurityConfiguration is intended for use in SpringBootTests and is activated by profile test.
+
+# Repository Instructions
+
+- `backend/src/test/resources/application-test.properties` configures the in-memory H2 database used during tests.
+- When a test class uses `@ActiveProfiles("test")`, Spring Boot loads `TestSecurityConfiguration` to simplify authentication for testing.
+- Run `./gradlew test` from the `backend` directory to execute all backend tests.
