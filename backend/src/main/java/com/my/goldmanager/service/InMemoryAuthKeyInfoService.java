@@ -174,11 +174,11 @@ public class InMemoryAuthKeyInfoService implements AuthKeyInfoService {
 			List<Entry<String, KeyWrapper>> forRemoval = secretKeys.entrySet().stream()
 					.filter(entry -> entry.getValue().expiresAfter.before(expirationDate)).collect(Collectors.toList());
 
-			forRemoval.stream().forEach(entry -> {
-				secretKeys.remove(entry.getKey());
-				removeKeyIdForUserName(entry.getKey(), entry.getValue().userName);
-			});
-		}
+                        forRemoval.stream().forEach(entry -> {
+                                secretKeys.remove(entry.getKey());
+                                removeKeyIdForUserName(entry.getValue().userName, entry.getKey());
+                        });
+                }
 
 	}
 
