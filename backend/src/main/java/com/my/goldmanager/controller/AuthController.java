@@ -50,6 +50,7 @@ public class AuthController {
 	@GetMapping("/refresh")
 	public ResponseEntity<JWTTokenInfo> refresh() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
 		try {
 			if (authentication == null) { // No authentication information available
 				// authentication.isAuthenticated() does not need to be checked, as it is
