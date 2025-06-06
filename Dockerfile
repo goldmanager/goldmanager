@@ -1,4 +1,4 @@
-FROM node:latest as build-frontend
+FROM node:20 as build-frontend
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY frontend ./
 
 RUN npm run build
 
-FROM gradle:latest as build-backend
+FROM gradle:8-jdk21 as build-backend
 
 WORKDIR /home/gradle/project
 
