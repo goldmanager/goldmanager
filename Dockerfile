@@ -29,7 +29,7 @@ WORKDIR /opt/goldmanager
 
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager/app.jar
 
-COPY --from=build-backend /home/gradle/project/build/reports/bom.json /bom/application.cdx.json
+COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json /bom/application.cdx.json
 COPY --from=build-frontend /app/bom-frontend.cdx.json /bom/frontend.cdx.json
 
 EXPOSE 8080

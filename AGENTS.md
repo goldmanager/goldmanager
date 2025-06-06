@@ -34,7 +34,7 @@ This repository contains two sub-projects:
      frontend with `npx @cyclonedx/cyclonedx-npm`, and run `npm run build`.
   2. Gradle stage to build the backend using `gradle clean bootJar cyclonedxBom`
      and copy the frontend build into `src/main/resources/static`. The resulting
-     backend SBOM is placed under `build/reports/bom.json`.
+     backend SBOM is placed under `build/reports/application.cdx.json`.
   3. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
      includes both SBOM files under `/bom`.
 * Build with:
