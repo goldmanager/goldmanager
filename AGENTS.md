@@ -54,6 +54,7 @@ docker compose -f backend/dev-env/compose.yaml up -d
 ## Testing Requirement for Pull Requests
 After modifying backend or frontend code, run the following checks before
 committing:
+When backend functions are added or changed, corresponding unit or integration tests must be created or updated.
 
 1. `./gradlew test` inside `backend/`
 2. `npm run lint` inside `frontend/`
