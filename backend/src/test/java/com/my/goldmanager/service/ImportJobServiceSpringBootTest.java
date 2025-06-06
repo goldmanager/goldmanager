@@ -3,6 +3,8 @@ package com.my.goldmanager.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,20 +17,20 @@ import com.my.goldmanager.service.exception.ImportInProgressException;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class ImportStatusServiceSpringBootTest {
+class ImportJobServiceSpringBootTest {
 
     @Autowired
-    private ImportStatusService importStatusService;
+    private ImportJobService importJobService;
 
     @MockitoBean
     private DataImportService dataImportService;
 
     @Test
     void testStartImportInvokesAsync() throws Exception {
-        importStatusService.startImport("data".getBytes(), "pass");
+        UUID id = importJobService.startImport("data".getBytes(), "pass");
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
+        assertEquals(JobStatus.SUCCESS, importJobService.getStatus(id));
     }
 
     @Test
@@ -37,21 +39,21 @@ class ImportStatusServiceSpringBootTest {
             Thread.sleep(300);
             return null;
         }).when(dataImportService).importData(Mockito.any(), Mockito.any());
-        importStatusService.startImport("data".getBytes(), "pass");
+        UUID id = importJobService.startImport("data".getBytes(), "pass");
         assertThrows(ImportInProgressException.class,
-                () -> importStatusService.startImport("data".getBytes(), "pass"));
+                () -> importJobService.startImport("data".getBytes(), "pass"));
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(350);
-        assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
+        assertEquals(JobStatus.SUCCESS, importJobService.getStatus(id));
     }
 
     @Test
     void testFailedStatus() throws Exception {
         Mockito.doThrow(new RuntimeException("fail")).when(dataImportService).importData(Mockito.any(), Mockito.any());
-        importStatusService.startImport("data".getBytes(), "pass");
+        UUID id = importJobService.startImport("data".getBytes(), "pass");
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        assertEquals(JobStatus.FAILED, importStatusService.getStatus());
+        assertEquals(JobStatus.FAILED, importJobService.getStatus(id));
     }
 
     @Test
@@ -59,9 +61,9 @@ class ImportStatusServiceSpringBootTest {
         Mockito.doThrow(new IllegalArgumentException(
                 "Reading of decrypted data failed, maybe the provided password is incorrect?"))
                 .when(dataImportService).importData(Mockito.any(), Mockito.any());
-        importStatusService.startImport("data".getBytes(), "bad");
+        UUID id = importJobService.startImport("data".getBytes(), "bad");
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        assertEquals(JobStatus.FAILED, importStatusService.getStatus());
+        assertEquals(JobStatus.FAILED, importJobService.getStatus(id));
     }
 }
