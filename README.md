@@ -1,5 +1,5 @@
 # About
-This application manages your gold and sliver assets and calculates their prices by the provided material price.
+This application manages your gold and silver assets and calculates their prices by the provided material price.
 # Project structure
 The project contains two directories containing backend and frontend components
 - backend/ Contains the backend, implemented in Spring-Boot.
