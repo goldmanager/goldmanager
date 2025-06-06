@@ -30,10 +30,13 @@ This repository contains two sub-projects:
 
 ### Docker Image
 * The root `Dockerfile` builds both projects in a multi-stage process:
-  1. Node stage to run `npm install` and `npm run build` under `frontend/`.
-  2. Gradle stage to build the backend using `gradle clean bootJar` and
-     copy the frontend build into `src/main/resources/static`.
-  3. Final stage runs the generated JAR with Temurin JRE (port 8080/8443).
+  1. Node stage to run `npm install`, create a CycloneDX SBOM for the
+     frontend with `npx @cyclonedx/cyclonedx-npm`, and run `npm run build`.
+  2. Gradle stage to build the backend using `gradle clean bootJar cyclonedxBom`
+     and copy the frontend build into `src/main/resources/static`. The resulting
+     backend SBOM is placed under `build/reports/bom.json`.
+  3. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
+     includes both SBOM files under `/bom`.
 * Build with:
   ```bash
   docker build -t goldmanager .
