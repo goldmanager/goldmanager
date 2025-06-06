@@ -98,16 +98,16 @@ public class InMemoryAuthKeyInfoService implements AuthKeyInfoService {
 
 	private void addKeyIdForUserName(String username, String keyId) {
 		synchronized (userKeyIDMap) {
-			List<String> keyIds = userKeyIDMap.get(username);
+                       List<String> keyIds = userKeyIDMap.get(username);
 
-			if (keyIds == null) {
+                       if (keyIds == null) {
 
-				keyIds = new LinkedList<String>();
+                               keyIds = new LinkedList<String>();
 
-				userKeyIDMap.put(username, new LinkedList<String>());
+                               userKeyIDMap.put(username, keyIds);
 
-			}
-			userKeyIDMap.get(username).addFirst(keyId);
+                       }
+                       keyIds.addFirst(keyId);
 		}
 
 	}

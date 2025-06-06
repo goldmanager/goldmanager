@@ -32,10 +32,10 @@ import io.jsonwebtoken.Jwts;
 @Service
 public class AuthenticationService {
 
-	@Value("${com.my.goldmanager.auth.jwtTokenValidity:7200000}") // Default: 2h
-	private long jwtTokenValidity;
-	@Value("${com.my.goldmanager.auth.jwtTokenValidity:3600000}") // Default: 1h
-	private long jwtTokenRefreshStart;
+       @Value("${com.my.goldmanager.auth.jwtTokenValidity:7200000}") // Default: 2h
+       private long jwtTokenValidity;
+       @Value("${com.my.goldmanager.auth.jwtTokenRefreshStart:3600000}") // Default: 1h
+       private long jwtTokenRefreshStart;
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -67,9 +67,9 @@ public class AuthenticationService {
 		return result;
 	}
 
-	public JWTTokenInfo refrehsJWTToken(String username) {
-		KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(username);
-		return buildJWTToken(username, keyInfo);
+       public JWTTokenInfo refreshJWTToken(String username) {
+               KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(username);
+               return buildJWTToken(username, keyInfo);
 
 
 	}

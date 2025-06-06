@@ -50,7 +50,7 @@ public class AuthController {
 	@GetMapping("/refresh")
 	public ResponseEntity<JWTTokenInfo> refresh() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return ResponseEntity.ok(authenticationService.refrehsJWTToken(authentication.getName()));
+               return ResponseEntity.ok(authenticationService.refreshJWTToken(authentication.getName()));
 	}
 
 	@GetMapping("/logoutuser")
