@@ -9,14 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.context.request.WebRequest;
 
 import com.my.goldmanager.rest.request.ImportDataRequest;
 import com.my.goldmanager.rest.response.ErrorResponse;
-import java.util.UUID;
 
-import com.my.goldmanager.service.ImportJobService;
+import com.my.goldmanager.service.ImportStatusService;
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ImportInProgressException;
 import com.my.goldmanager.service.exception.BadRequestException;
@@ -26,14 +24,14 @@ import com.my.goldmanager.service.exception.BadRequestException;
 public class DataImportController {
 
         @Autowired
-        private ImportJobService importJobService;
+    private ImportStatusService importStatusService;
 
         @PostMapping("/import")
-        public ResponseEntity<String> importData(@RequestBody ImportDataRequest importDataRequest) {
+        public ResponseEntity<Void> importData(@RequestBody ImportDataRequest importDataRequest) {
                 try {
-                        UUID jobId = importJobService.startImport(importDataRequest.getData(),
+                        importStatusService.startImport(importDataRequest.getData(),
                                         importDataRequest.getPassword());
-                        return ResponseEntity.accepted().body(jobId.toString());
+                        return ResponseEntity.accepted().build();
                 } catch (ImportInProgressException e) {
                         throw e;
                 } catch (Exception e) {
@@ -41,13 +39,9 @@ public class DataImportController {
                 }
         }
 
-        @GetMapping("/status/{jobId}")
-        public ResponseEntity<JobStatus> getStatus(@org.springframework.web.bind.annotation.PathVariable UUID jobId) {
-                JobStatus status = importJobService.getStatus(jobId);
-                if (status == null) {
-                        return ResponseEntity.notFound().build();
-                }
-                return ResponseEntity.ok(status);
+        @GetMapping("/status")
+        public ResponseEntity<JobStatus> getStatus() {
+                return ResponseEntity.ok(importStatusService.getStatus());
         }
 
         @ExceptionHandler(ImportInProgressException.class)

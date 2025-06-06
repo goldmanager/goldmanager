@@ -18,10 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.rest.request.ImportDataRequest;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.DataImportService;
-import com.my.goldmanager.service.ImportJobService;
+import com.my.goldmanager.service.ImportStatusService;
 import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.entity.JobStatus;
-import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,7 +34,7 @@ class DataImportControllerSpringBootTest {
     private DataImportService dataImportService;
 
     @Autowired
-    private ImportJobService importJobService;
+    private ImportStatusService importStatusService;
 
     @Autowired
     private UserService userService;
@@ -63,12 +62,12 @@ class DataImportControllerSpringBootTest {
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
 
-        org.junit.jupiter.api.Assertions.assertFalse(response.isEmpty());
+        org.junit.jupiter.api.Assertions.assertTrue(response.isEmpty());
         Mockito.verify(dataImportService, Mockito.timeout(1000).times(1)).importData(request.getData(),
                 request.getPassword());
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, importJobService.getStatus(UUID.fromString(response)));
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
     }
 
     @Test
@@ -91,7 +90,7 @@ class DataImportControllerSpringBootTest {
 
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(350);
-        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, importJobService.getStatus(UUID.fromString(response)));
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
     }
 
     @Test
@@ -99,15 +98,15 @@ class DataImportControllerSpringBootTest {
         ImportDataRequest request = new ImportDataRequest();
         request.setData("validData".getBytes());
         request.setPassword("validPassword");
-        String jobId = mockMvc
+        String response = mockMvc
                 .perform(TestHTTPClient.doPost("/api/dataimport/import").contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
-        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status/" + jobId))
+        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
                 .andExpect(status().isOk());
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status/" + jobId))
+        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
                 .andExpect(status().isOk());
     }
 
@@ -128,6 +127,6 @@ class DataImportControllerSpringBootTest {
 
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.FAILED, importJobService.getStatus(UUID.fromString(response)));
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.FAILED, importStatusService.getStatus());
     }
 }

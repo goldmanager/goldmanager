@@ -11,6 +11,6 @@ Please see also https://github.com/goldmanager/goldmanager-dockercompose for an 
 
 ## Data Import
 
-Data import is processed asynchronously. Use `POST /api/dataimport/import` with a JSON body containing `data` and `password`. The request returns HTTP `202 Accepted` and a job ID. The status of the import can be retrieved via
-`GET /api/dataimport/status/{jobId}` returning `RUNNING`, `SUCCESS` or `FAILED`. If another import is triggered while a job is already running the service
-responds with HTTP `409 Conflict`.
+Data import is processed asynchronously. Use `POST /api/dataimport/import` with a JSON body containing `data` and `password`. The request returns HTTP `202 Accepted`.
+The current status can be retrieved via `GET /api/dataimport/status` returning `IDLE`, `RUNNING`, `SUCCESS` or `FAILED`. If another import is triggered while a job
+is already running the service responds with HTTP `409 Conflict`.
