@@ -55,9 +55,12 @@ export default {
       }
       const reader = new FileReader();
       reader.onload = () => {
-       this.fileData  = reader.result;
-      };
-      reader.readAsArrayBuffer(file);
+          const arrayBuffer = reader.result;
+          const binaryString = String.fromCharCode(...new Uint8Array(arrayBuffer));
+          this.fileData = btoa(binaryString); // Convert to Base64 
+          this.errorMessage = '';
+    };
+    reader.readAsArrayBuffer(file); // Read file as ArrayBuffer
     },
     getImportButtonClass(){
       if(this.disableImport){

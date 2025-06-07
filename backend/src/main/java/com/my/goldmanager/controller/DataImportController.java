@@ -22,40 +22,38 @@ import com.my.goldmanager.service.exception.ImportInProgressException;
 @RequestMapping("/api/dataimport")
 public class DataImportController {
 
-        @Autowired
-    private ImportStatusService importStatusService;
+	@Autowired
+	private ImportStatusService importStatusService;
 
-        @PostMapping("/import")
-        public ResponseEntity<Void> importData(@RequestBody ImportDataRequest importDataRequest) {
-                try {
-                        importStatusService.startImport(importDataRequest.getData(),
-                                        importDataRequest.getPassword());
-                        return ResponseEntity.accepted().build();
-                } catch (ImportInProgressException e) {
-                        throw e;
-                } catch (Exception e) {
-                        throw new BadRequestException("Error importing data: " + e.getMessage(), e);
-                }
-        }
+	@PostMapping("/import")
+	public ResponseEntity<Void> importData(@RequestBody ImportDataRequest importDataRequest) {
+		try {
+			importStatusService.startImport(importDataRequest.getData(), importDataRequest.getPassword());
+			return ResponseEntity.accepted().build();
+		} catch (ImportInProgressException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new BadRequestException("Error importing data: " + e.getMessage(), e);
+		}
+	}
 
-        @GetMapping("/status")
-        public ResponseEntity<JobStatusResponse> getStatus() {
-                return ResponseEntity
-                                .ok(new JobStatusResponse(importStatusService.getStatus(),
-                                                importStatusService.getMessage()));
-        }
+	@GetMapping("/status")
+	public ResponseEntity<JobStatusResponse> getStatus() {
+		return ResponseEntity
+				.ok(new JobStatusResponse(importStatusService.getStatus(), importStatusService.getMessage()));
+	}
 
-        @ExceptionHandler(ImportInProgressException.class)
-        public final ResponseEntity<ErrorResponse> handleImportInProgressException(ImportInProgressException ex,
-                        WebRequest request) {
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
-                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-        }
+	@ExceptionHandler(ImportInProgressException.class)
+	public final ResponseEntity<ErrorResponse> handleImportInProgressException(ImportInProgressException ex,
+			WebRequest request) {
+		ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+	}
 
-        @ExceptionHandler(BadRequestException.class)
-        public final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex, WebRequest request) {
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
+	@ExceptionHandler(BadRequestException.class)
+	public final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex, WebRequest request) {
+		ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+	}
 
 }

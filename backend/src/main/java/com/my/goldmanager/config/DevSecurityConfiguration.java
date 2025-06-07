@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,7 +33,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
@@ -45,7 +45,6 @@ import lombok.RequiredArgsConstructor;
 @Profile("dev")
 public class DevSecurityConfiguration {
 
-
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
 
@@ -54,19 +53,19 @@ public class DevSecurityConfiguration {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.authorizeHttpRequests(
-                                (requests) -> requests.requestMatchers("/api/auth/login").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
-                                                .requestMatchers("/api/**").authenticated()
-                                                .anyRequest().permitAll())
-				.httpBasic(httpBasic -> httpBasic.disable()).csrf((csfr) -> csfr.disable())
-				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.cors(cors -> cors.configure(http)).csrf(csrf -> csrf.disable())
+				.authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+						.requestMatchers("/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+						.requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+				.httpBasic(httpBasic -> httpBasic.disable());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
-
-	
 
 	@Bean
 	public UserDetailsService userDetailsService() {
