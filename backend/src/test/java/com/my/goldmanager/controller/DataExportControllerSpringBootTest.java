@@ -2,7 +2,6 @@ package com.my.goldmanager.controller;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.AfterEach;
@@ -17,60 +16,79 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.my.goldmanager.rest.request.ExportDataRequest;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.DataExportService;
+import com.my.goldmanager.service.DataExportStatusService;
 import com.my.goldmanager.service.UserService;
+import com.my.goldmanager.service.entity.JobStatus;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class DataExportControllerSpringBootTest {
-	@Autowired
-	private UserService userService;
-	@Autowired
-	private AuthenticationService authenticationService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private AuthenticationService authenticationService;
 
-	@BeforeEach
-	public void setUp() {
-		TestHTTPClient.setup(userService,authenticationService);
-	}
+    @BeforeEach
+    public void setUp() {
+        TestHTTPClient.setup(userService, authenticationService);
+    }
 
-	@AfterEach
-	public void cleanUp() {
-		TestHTTPClient.cleanup();
-	}
+    @AfterEach
+    public void cleanUp() {
+        TestHTTPClient.cleanup();
+    }
 
-	@MockitoBean
-	private DataExportService dataExportService;
+    @MockitoBean
+    private DataExportService dataExportService;
 
-	@Autowired
-	private MockMvc mockMvc;
+    @Autowired
+    private DataExportStatusService dataExportStatusService;
 
-	@Test
-	void testExport_Success() throws Exception {
-		byte[] mockData = "exportedData".getBytes();
+    @Autowired
+    private MockMvc mockMvc;
 
-		// Mock the service to return the expected data
-		Mockito.when(dataExportService.exportData(Mockito.anyString())).thenReturn(mockData);
+    @Test
+    void testExport_AcceptedAndDownload() throws Exception {
+        byte[] mockData = "exportedData".getBytes();
+        Mockito.when(dataExportService.exportData(Mockito.anyString())).thenReturn(mockData);
+        ExportDataRequest req = new ExportDataRequest();
+        req.setPassword("validPassword");
 
-		mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
-				.content("{\"password\": \"validPassword\"}")).andExpect(status().isOk())
-				.andExpect(header().string("Content-Type", "application/octet-stream"))
-				.andExpect(content().bytes(mockData));
+        mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(req)))
+                .andExpect(status().isAccepted());
 
-		Mockito.verify(dataExportService, Mockito.times(1)).exportData(Mockito.anyString());
-	}
+        Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.anyString());
+        Thread.sleep(50);
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, dataExportStatusService.getStatus());
 
-	@Test
-	void testExport_Error() throws Exception {
-		// Mock the service to throw an exception
-		Mockito.when(dataExportService.exportData(Mockito.anyString()))
-				.thenThrow(new RuntimeException("Export failed"));
+        mockMvc.perform(TestHTTPClient.doGet("/api/dataexport/download"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/octet-stream"))
+                .andExpect(content().bytes(mockData));
+    }
 
-		mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
-				.content("{\"password\": \"validPassword\"}")).andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message").value("Error exporting data: Export failed"));
-
-		Mockito.verify(dataExportService, Mockito.times(1)).exportData(Mockito.anyString());
-	}
+    @Test
+    void testExport_Conflict() throws Exception {
+        Mockito.doAnswer(invocation -> {
+            Thread.sleep(300);
+            return "data".getBytes();
+        }).when(dataExportService).exportData(Mockito.anyString());
+        ExportDataRequest req = new ExportDataRequest();
+        req.setPassword("validPassword");
+        mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(req)))
+                .andExpect(status().isAccepted());
+        mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(req)))
+                .andExpect(status().isConflict());
+        Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.anyString());
+        Thread.sleep(350);
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, dataExportStatusService.getStatus());
+    }
 }
