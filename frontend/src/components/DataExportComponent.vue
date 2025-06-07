@@ -91,7 +91,7 @@ export default {
         const response = await axios.get('/dataexport/download', { responseType: 'blob' });
         if (response.data) {
           const blob = new Blob([response.data], { type: 'application/zip' });
-          await this.saveFile(blob, 'goldmanager-export.zip');
+          await this.saveFile(blob, 'goldmanager-export.backup');
           this.statusMessage = 'Data exported successfully.';
         }
       } catch (error) {
