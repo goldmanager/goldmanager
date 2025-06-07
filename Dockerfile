@@ -21,7 +21,7 @@ COPY backend .
 
 COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/static
 
-RUN gradle clean bootJar cyclonedxBom
+RUN gradle clean bootJar cyclonedxBom -PskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 

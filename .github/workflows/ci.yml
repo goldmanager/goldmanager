@@ -31,7 +31,7 @@ jobs:
 
     - name: Build Backend
       working-directory: ./backend
-      run: ./gradlew build
+      run: ./gradlew build -PskipTests
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
@@ -59,4 +59,4 @@ jobs:
 
     - name: Test Backend
       working-directory: ./backend
-      run: ./gradlew test
+      run: ./gradlew check

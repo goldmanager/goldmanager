@@ -138,7 +138,7 @@ class MaterialControllerSpringBootTest {
 		
 		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
 		assertEquals(400, error.getStatus());
-		assertEquals("EntryDate must not be in future.", error.getMessage());
+		assertEquals("EntryDate must not be in the future.", error.getMessage());
 	}
 
 
@@ -320,7 +320,7 @@ class MaterialControllerSpringBootTest {
 
 		ErrorResponse error = objectMapper.readValue(body, ErrorResponse.class);
 		assertEquals(400, error.getStatus());
-		assertEquals("EntryDate must not be in future.", error.getMessage());
+		assertEquals("EntryDate must not be in the future.", error.getMessage());
 
 	}
 

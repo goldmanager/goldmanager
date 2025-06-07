@@ -3,18 +3,74 @@ plugins {
 	id 'org.springframework.boot' version '3.5.0'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.asciidoctor.jvm.convert' version '4.0.4'
+	id 'jacoco' 
 	id 'org.cyclonedx.bom' version '2.3.1'
+
 }
+
+import java.util.Properties
 
 group = 'de.goldmanager'
 version = '1.0.0'
 compileJava.options.encoding = 'UTF-8'
+
+task generateVersionProperties {
+    def outputDir = file("$buildDir/generated-resources")
+    def versionFile = new File(outputDir, "version.properties")
+
+    outputs.file(versionFile)
+    doLast {
+        outputDir.mkdirs()
+        def properties = new Properties()
+        properties.setProperty('version', project.version.toString())
+        versionFile.withWriter { writer ->
+            properties.store(writer, null)
+        }
+      
+    }
+}
+sourceSets.main.resources.srcDir("$buildDir/generated-resources")
+tasks.named("processResources").configure {
+    dependsOn generateVersionProperties
+}
+
+tasks.named("generateVersionProperties").configure {
+    outputs.dir("$buildDir/generated-resources")
+}
+
+compileJava.dependsOn generateVersionProperties
+
+tasks.named("classes").configure {
+    dependsOn generateVersionProperties
+}
+ 
+ jacocoTestReport {
+       dependsOn test // Ensure tests run before generating the report
+       reports {
+           xml.required = true
+           html.required = true
+       }
+      
+ }
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
+ jacocoTestCoverageVerification {
+      onlyIf { !project.hasProperty('skipTests') }
+      dependsOn jacocoTestReport
+       violationRules {
+           rule {
+               limit {
+                   counter = 'LINE' // Check line coverage
+                   value = 'COVEREDRATIO'
+                   minimum = 0.80 // Set minimum coverage to 80%
+               }
+           }
+       }
+   }
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -47,10 +103,10 @@ dependencies {
     implementation 'org.springframework.session:spring-session-core'
     implementation 'commons-codec:commons-codec:1.18.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    implementation 'com.github.zafarkhaja:java-semver:0.10.2'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
     implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
     
-   
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
@@ -77,10 +133,16 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.named('test') {
+ 	onlyIf { !project.hasProperty('skipTests') }
 	outputs.dir snippetsDir
 	useJUnitPlatform()
 }
 
+tasks.check {
+	   onlyIf { !project.hasProperty('skipTests') }
+       dependsOn jacocoTestCoverageVerification
+       
+}
 tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
 	dependsOn test

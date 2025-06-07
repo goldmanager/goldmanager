@@ -1,17 +1,22 @@
 <template>
-   <div class="main">
-   <div>
-   <div class="content">
-    <h1>Login</h1>
-
-    <form @submit.prevent="handleLogin">
-      <input v-model="username" type="text" placeholder="Username" required />
-      <input v-model="password" type="password" placeholder="Password" required />
-      <button class="loginbutton" type="submit">Login</button>
-    </form>
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-  </div>
-  </div>
+  <div class="main">
+    <div>
+      <div class="content">
+        <template v-if="!showImportStatus">
+          <h1>Login</h1>
+          <form @submit.prevent="handleLogin">
+            <input v-model="username" type="text" placeholder="Username" required />
+            <input v-model="password" type="password" placeholder="Password" required />
+            <button class="loginbutton" type="submit">Login</button>
+          </form>
+          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        </template>
+        <template v-else>
+          <h1>Import Status</h1>
+          <p>{{ importStatusMessage }}</p>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -25,7 +30,10 @@ export default {
       username: '',
       password: '',
       errorMessage: '',
-      logoUrl: require('@/assets/logo.png')
+      logoUrl: require('@/assets/logo.png'),
+      importStatus: '',
+      importStatusMessage: '',
+      showImportStatus: false
     };
   },
   methods: {
@@ -46,7 +54,24 @@ export default {
 		console.error("error on login",error);
       }
     }
+    ,
+    async checkImportStatus() {
+      try {
+        const response = await axios.get('/dataimport/status');
+        this.importStatus = response.data.status;
+        this.importStatusMessage =
+          this.importStatus === 'RUNNING'
+            ? 'A data import is currently running. Login is not possible at the moment.'
+            : response.data.message || '';
+        this.showImportStatus = this.importStatus === 'RUNNING';
+      } catch (error) {
+        this.showImportStatus = false;
+      }
+    }
 
+  },
+  async mounted() {
+    await this.checkImportStatus();
   }
 };
 </script>

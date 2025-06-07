@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -67,15 +67,16 @@ public class AuthenticationService {
 		return result;
 	}
 
-       public JWTTokenInfo refreshJWTToken(String username) {
+
+  public JWTTokenInfo refreshJWTToken(String username) {
                KeyInfo keyInfo = authKeyInfoService.getKeyInfoForUserName(username);
                return buildJWTToken(username, keyInfo);
-
 
 	}
 
 	public void logout(String username) {
 		authKeyInfoService.removeKeyInfosForUserName(username);
+
 	}
 
 	public void logoutAll() {
