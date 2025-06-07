@@ -12,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ImportInProgressException;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,7 +60,7 @@ class ImportStatusServiceSpringBootTest {
 
     @Test
     void testFailedStatus_WrongPassword() throws Exception {
-        Mockito.doThrow(new IllegalArgumentException(
+		Mockito.doThrow(new PasswordValidationException(
                 "Reading of decrypted data failed, maybe the provided password is incorrect?"))
                 .when(dataImportService).importData(Mockito.any(), Mockito.any());
         importStatusService.startImport("data".getBytes(), "bad");

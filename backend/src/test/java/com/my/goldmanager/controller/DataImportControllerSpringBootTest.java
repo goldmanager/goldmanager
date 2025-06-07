@@ -16,12 +16,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.rest.request.ImportDataRequest;
+import com.my.goldmanager.rest.response.JobStatusResponse;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.DataImportService;
 import com.my.goldmanager.service.ImportStatusService;
 import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.entity.JobStatus;
-import com.my.goldmanager.rest.response.JobStatusResponse;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -119,7 +120,7 @@ class DataImportControllerSpringBootTest {
 
     @Test
     void testImportData_WrongPasswordResultsInFailedStatus() throws Exception {
-        Mockito.doThrow(new IllegalArgumentException(
+		Mockito.doThrow(new PasswordValidationException(
                 "Reading of decrypted data failed, maybe the provided password is incorrect?"))
                 .when(dataImportService).importData(Mockito.any(), Mockito.any());
 

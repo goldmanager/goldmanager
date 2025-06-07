@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ImportInProgressException;
-import com.my.goldmanager.service.exception.ValidationException;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @Service
 public class ImportStatusService {
@@ -38,7 +38,7 @@ public class ImportStatusService {
             dataImportService.importData(data, password);
             status.set(JobStatus.SUCCESS);
             message.set("");
-        } catch (ValidationException | IllegalArgumentException e) {
+		} catch (PasswordValidationException e) {
             status.set(JobStatus.PASSWORD_ERROR);
             message.set(e.getMessage());
         } catch (Exception e) {

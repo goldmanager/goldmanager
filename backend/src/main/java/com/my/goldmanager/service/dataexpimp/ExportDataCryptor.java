@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.goldmanager.service.PasswordPolicyValidationService;
 import com.my.goldmanager.service.entity.ExportData;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
@@ -59,7 +60,13 @@ public class ExportDataCryptor {
 		if (exportData == null) {
 			throw new ValidationException("ExportData cannot be null");
 		}
-		passwordPolicyValidationService.validate(encryptionPassword);
+		try {
+			passwordPolicyValidationService.validate(encryptionPassword);
+		} catch (ValidationException ve) {
+			throw new PasswordValidationException(
+					ve.getMessage(), ve);
+		}
+
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
 		byte[] salt = DataExportImportCryptoUtil.generateSalt();
@@ -153,7 +160,7 @@ public class ExportDataCryptor {
 				return objectMapper.readValue(payload, ExportData.class);
 
 			} catch (IOException ioex) {
-				throw new ValidationException(
+				throw new PasswordValidationException(
 						"Decryption of data has failed, maybe the provided password is incorrect?", ioex);
 			}
 		} catch (ZipException e) {
