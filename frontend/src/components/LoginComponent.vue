@@ -13,7 +13,7 @@
         </template>
         <template v-else>
           <h1>Import Status</h1>
-          <p>{{ importStatus }}</p>
+          <p>{{ importStatusMessage }}</p>
         </template>
       </div>
     </div>
@@ -32,6 +32,7 @@ export default {
       errorMessage: '',
       logoUrl: require('@/assets/logo.png'),
       importStatus: '',
+      importStatusMessage: '',
       showImportStatus: false
     };
   },
@@ -57,8 +58,12 @@ export default {
     async checkImportStatus() {
       try {
         const response = await axios.get('/dataimport/status');
-        this.importStatus = response.data;
-        this.showImportStatus = response.data === 'RUNNING';
+        this.importStatus = response.data.status;
+        this.importStatusMessage =
+          this.importStatus === 'RUNNING'
+            ? 'A data import is currently running. Login is not possible at the moment.'
+            : response.data.message || '';
+        this.showImportStatus = this.importStatus === 'RUNNING';
       } catch (error) {
         this.showImportStatus = false;
       }
