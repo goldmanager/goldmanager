@@ -22,7 +22,7 @@ This repository contains two sub-projects:
   cd frontend
   npm install
   npm run lint    # Lint source files
-  npm run serve   # Dev server
+  npm run dev     # Dev server
   npm run build   # Production build
   ```
 * The script `build.sh` builds the frontend and copies the output to

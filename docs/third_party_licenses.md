@@ -12,6 +12,6 @@ This project uses several open source dependencies. The following table lists ke
 | H2 database | MPL 2.0 / EPL 1.0 |
 | Byte Buddy | Apache-2.0 |
 | Mockito | MIT |
-| Vue and related frontend packages | MIT |
+| Vue, Vite and related frontend packages | MIT |
 
 All listed licenses are permissive or weak copyleft and are compatible with use under the Apache License 2.0. For LGPL and MPL/EPL components, ensure they remain separate libraries when distributing the application and keep the original license notices intact.
