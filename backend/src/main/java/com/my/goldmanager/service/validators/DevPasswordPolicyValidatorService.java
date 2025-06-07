@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,10 @@ public class DevPasswordPolicyValidatorService implements PasswordPolicyValidati
 		if (password == null || password.isBlank() || password.trim().contains(" ")) {
 			throw new ValidationException("Password is mandatory and must not contain spaces.");
 		}
-		if(password.length()>255) {
+		if (password.length() < 8) {
+			throw new ValidationException("Minimum password size is 8 characters.");
+		}
+		if (password.length() > 100) {
 			throw new ValidationException("Maximum password size is 100 characters.");
 		}
 

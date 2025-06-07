@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,7 +45,6 @@ import lombok.RequiredArgsConstructor;
 @Profile("dev")
 public class DevSecurityConfiguration {
 
-
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
 
@@ -53,16 +53,19 @@ public class DevSecurityConfiguration {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests(
-				(requests) -> requests.requestMatchers("/api/auth/login").permitAll().requestMatchers("/api/**").authenticated().anyRequest().permitAll())
-				.httpBasic(httpBasic -> httpBasic.disable()).csrf((csfr) -> csfr.disable())
-				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.cors(cors -> cors.configure(http)).csrf(csrf -> csrf.disable())
+				.authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+						.requestMatchers("/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+						.requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+				.httpBasic(httpBasic -> httpBasic.disable());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
-
-	
 
 	@Bean
 	public UserDetailsService userDetailsService() {

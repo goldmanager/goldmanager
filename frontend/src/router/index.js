@@ -8,6 +8,8 @@ import Items from '../components/ItemsComponent.vue';
 import Users from '../components/UsersComponent.vue';
 import ItemStorages from '../components/ItemStorages.vue';
 import PriceHistory from '../components/PriceHistoryComponent.vue'
+import DataExport from '../components/DataExportComponent.vue';
+import DataImport from '../components/DataImportComponent.vue';
 // Erstelle den Router
 const router = createRouter({
   history: createWebHistory(),
@@ -20,7 +22,9 @@ const router = createRouter({
 	{ path: '/itemStorages', component: ItemStorages, meta: { requiresAuth: true } },
     { path: '/items', component: Items, meta: { requiresAuth: true } },
     { path: '/users', component: Users, meta: { requiresAuth: true } },
-	{ path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}}
+        { path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}},
+    { path: '/dataexport', component: DataExport, meta: { requiresAuth: true } },
+    { path: '/dataimport', component: DataImport, meta: { requiresAuth: true } }
     // Weitere Routen hinzufügen
   ]
 });

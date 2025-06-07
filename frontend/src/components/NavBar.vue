@@ -8,6 +8,8 @@
     <router-link to="/metals">Metals</router-link>
     <router-link to="/units">Units</router-link>
     <router-link to="/users">Users</router-link>
+    <router-link to="/dataexport">Data Export</router-link>
+    <router-link to="/dataimport">Data Import</router-link>
     <button @click="logout">Logout</button>
   </nav>
   <nav v-else>

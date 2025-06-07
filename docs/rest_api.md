@@ -22,9 +22,28 @@ The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token m
 | Units | `/api/units` | `GET`, `GET /{name}`, `POST`, `PUT /{name}`, `DELETE /{name}` |
 | Prices | `/api/prices` | `GET` list, `GET /item/{id}`, `GET /material/{id}`, `GET /itemStorage/{id}`, grouping endpoints |
 | Price History | `/api/priceHistory` | `GET /{materialId}` with optional `startDate` and `endDate` |
+| Data Import | `/api/dataimport` | `POST /import` to start an import (returns `202`), `GET /status` for the current job status |
+| Data Export | `/api/dataexport` | `POST /export` to start an export (returns `202`), `GET /status` for the current job status, `GET /download` to retrieve the data |
 | User Service | `/api/userService` | endpoints for managing users |
 
 The controllers reside under `backend/src/main/java/com/my/goldmanager/controller/`.
+
+## Data Import
+
+Data import is asynchronous. Use `POST /api/dataimport/import` with a JSON body containing `data` and
+`password`. The request returns HTTP `202 Accepted` when the import started. Poll
+`GET /api/dataimport/status` to check the current job status. This endpoint is publicly accessible so the
+UI can determine if an import is in progress before logging in. The response contains the job status and
+an optional message. Possible states are `IDLE`, `RUNNING`, `SUCCESS`, `FAILED` and `PASSWORD_ERROR`.
+If another import is triggered while one is already running the service responds with HTTP `409 Conflict`.
+
+## Data Export
+
+Data export mirrors the import workflow. Trigger the job with `POST /api/dataexport/export` providing
+`password` in the JSON body. The response is HTTP `202 Accepted` once the export started. Poll
+`GET /api/dataexport/status` until it returns `SUCCESS`. The status payload also includes a message and
+may report `PASSWORD_ERROR` when the supplied password is invalid. Download the result via
+`GET /api/dataexport/download`. Starting a new export while one is running yields HTTP `409 Conflict`.
 
 ## Integration with the UI
 
