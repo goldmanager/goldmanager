@@ -12,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ExportInProgressException;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,7 +60,7 @@ class DataExportStatusServiceSpringBootTest {
 
     @Test
     void testPasswordErrorStatus() throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("Password invalid"))
+		Mockito.doThrow(new PasswordValidationException("Password invalid"))
                 .when(dataExportService).exportData(Mockito.any());
         dataExportStatusService.startExport("bad");
         Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.any());

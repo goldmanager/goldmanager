@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     disableExport() {
-      return this.exportStatus === 'RUNNING';
+      return this.exportStatus === 'RUNNING' || this.exportStarted;
     }
   },
   methods: {
@@ -54,6 +54,7 @@ export default {
         this.showExportStatus = true;
         this.startStatusInterval();
       } catch (error) {
+        this.exportStarted=false;
         this.setErrorMessage(error, 'Error exporting data. Please try again later.');
       }
     },

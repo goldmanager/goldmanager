@@ -15,6 +15,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Test;
 
+import com.my.goldmanager.service.exception.PasswordValidationException;
+
 class DataExportImportCryptoUtilTest {
 
 	@Test
@@ -22,14 +24,14 @@ class DataExportImportCryptoUtilTest {
 		byte[] salt = DataExportImportCryptoUtil.generateSalt();
 
 		// Test with null password
-		Exception nullPasswordException = assertThrows(IllegalArgumentException.class, () -> {
+		Exception nullPasswordException = assertThrows(PasswordValidationException.class, () -> {
 			DataExportImportCryptoUtil.generateKeyFromPassword(null, salt);
 		});
 		assertTrue(nullPasswordException.getMessage().contains("Password must not be null or empty"),
 				"Exception message should indicate that the password is invalid");
 
 		// Test with empty password
-		Exception emptyPasswordException = assertThrows(IllegalArgumentException.class, () -> {
+		Exception emptyPasswordException = assertThrows(PasswordValidationException.class, () -> {
 			DataExportImportCryptoUtil.generateKeyFromPassword("", salt);
 		});
 		assertTrue(emptyPasswordException.getMessage().contains("Password must not be null or empty"),

@@ -24,6 +24,8 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.my.goldmanager.service.exception.PasswordValidationException;
+
 public class DataExportImportCryptoUtil {
 	public static final int SALT_LENGTH = 16;
 	public static final String ENCRYPTION_ALG = "AES";
@@ -48,7 +50,7 @@ public class DataExportImportCryptoUtil {
 	public static SecretKey generateKeyFromPassword(String password, byte[] salt) throws Exception {
 
 		if (password == null || password.isEmpty()) {
-			throw new IllegalArgumentException("Password must not be null or empty");
+			throw new PasswordValidationException("Password must not be null or empty");
 		}
 		if (salt.length != SALT_LENGTH) {
 			throw new IllegalArgumentException("Salt length must be " + SALT_LENGTH + " bytes");

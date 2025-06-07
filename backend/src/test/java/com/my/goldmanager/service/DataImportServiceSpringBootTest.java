@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.my.goldmanager.service.dataexpimp.DataImporter;
 import com.my.goldmanager.service.dataexpimp.ExportDataCryptor;
 import com.my.goldmanager.service.entity.ExportData;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +71,7 @@ class DataImportServiceSpringBootTest {
 	void testImportData_NullPassword() {
 		byte[] validData = "validData".getBytes();
 
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+		Exception exception = assertThrows(PasswordValidationException.class, () -> {
 			dataImportService.importData(validData, null);
 		});
 
@@ -82,7 +83,7 @@ class DataImportServiceSpringBootTest {
 		byte[] validData = "validData".getBytes();
 		String emptyPassword = "";
 
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+		Exception exception = assertThrows(PasswordValidationException.class, () -> {
 			dataImportService.importData(validData, emptyPassword);
 		});
 
@@ -96,7 +97,7 @@ class DataImportServiceSpringBootTest {
 
 		Mockito.when(exportDataCryptor.decrypt(validData, encryptionPassword)).thenReturn(null);
 
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+		Exception exception = assertThrows(PasswordValidationException.class, () -> {
 			dataImportService.importData(validData, encryptionPassword);
 		});
 

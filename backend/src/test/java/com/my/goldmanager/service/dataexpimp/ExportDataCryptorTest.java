@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.my.goldmanager.service.entity.ExportData;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 import com.my.goldmanager.service.exception.ValidationException;
 
 @SpringBootTest
@@ -58,7 +59,7 @@ class ExportDataCryptorTest {
 	void testEncrypt_NullPassword() {
 		ExportData exportData = new ExportData();
 
-		ValidationException exception = assertThrows(ValidationException.class, () -> {
+		PasswordValidationException exception = assertThrows(PasswordValidationException.class, () -> {
 			exportDataCryptor.encrypt(exportData, null);
 		});
 
@@ -90,7 +91,7 @@ class ExportDataCryptorTest {
 
 		byte[] encryptedData = exportDataCryptor.encrypt(exportData, correctPassword);
 
-		Exception exception = assertThrows(ValidationException.class, () -> {
+		Exception exception = assertThrows(PasswordValidationException.class, () -> {
 			exportDataCryptor.decrypt(encryptedData, incorrectPassword);
 		});
 

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.my.goldmanager.service.dataexpimp.DataImporter;
 import com.my.goldmanager.service.dataexpimp.ExportDataCryptor;
 import com.my.goldmanager.service.entity.ExportData;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 /**
  * Imports all data from supplied data into database
@@ -46,11 +47,11 @@ public class DataImportService {
 			throw new IllegalArgumentException("Data cannot be null or empty");
 		}
 		if (encryptionPassword == null || encryptionPassword.isEmpty()) {
-			throw new IllegalArgumentException("Encryption password cannot be null or empty");
+			throw new PasswordValidationException("Encryption password cannot be null or empty");
 		}
 		ExportData exportData = exportDataCryptor.decrypt(data, encryptionPassword);
 		if (exportData == null) {
-			throw new IllegalArgumentException(
+			throw new PasswordValidationException(
 					"Reading of decrypted data failed, maybe the provided password is incorrect?");
 		}
 		dataImporter.importData(exportData);
