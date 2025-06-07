@@ -91,17 +91,37 @@ export default {
         const response = await axios.get('/dataexport/download', { responseType: 'blob' });
         if (response.data) {
           const blob = new Blob([response.data], { type: 'application/zip' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'goldmanager-export.zip');
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          await this.saveFile(blob, 'goldmanager-export.zip');
           this.statusMessage = 'Data exported successfully.';
         }
       } catch (error) {
         this.setErrorMessage(error, 'Error downloading export data.');
+      }
+    },
+
+    async saveFile(blob, filename) {
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'ZIP file', accept: { 'application/zip': ['.zip'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            throw err;
+          }
+        }
+      } else {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     },
     startStatusInterval() {
