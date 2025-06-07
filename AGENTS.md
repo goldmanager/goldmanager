@@ -3,8 +3,8 @@
 This repository contains two sub-projects:
 
 * **backend/** – Spring Boot application built with Gradle. Java 21 is required.
-* **frontend/** – Vue 3 SPA built with Node (tested with Node 16).
-  Use Node.js 16 for local development to match the CI environment.
+* **frontend/** – Vue 3 SPA built with Node (tested with Node 20).
+  Use Node.js 20 for local development to match the CI environment.
 
 ## Build and Test Instructions
 
@@ -22,7 +22,7 @@ This repository contains two sub-projects:
   cd frontend
   npm install
   npm run lint    # Lint source files
-  npm run serve   # Dev server
+  npm run dev     # Dev server
   npm run build   # Production build
   ```
 * The script `build.sh` builds the frontend and copies the output to
