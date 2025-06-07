@@ -47,7 +47,6 @@ export default {
   methods: {
     ...mapActions(['logout']),
     handleFileUpload(event) {
-
       const file = event.target.files[0];
       if (!file) {
         this.fileData = null;
@@ -55,12 +54,16 @@ export default {
       }
       const reader = new FileReader();
       reader.onload = () => {
-          const arrayBuffer = reader.result;
-          const binaryString = String.fromCharCode(...new Uint8Array(arrayBuffer));
-          this.fileData = btoa(binaryString); // Convert to Base64 
-          this.errorMessage = '';
-    };
-    reader.readAsArrayBuffer(file); // Read file as ArrayBuffer
+        const arrayBuffer = reader.result;
+        const bytes = new Uint8Array(arrayBuffer);
+        let binaryString = '';
+        for (let i = 0; i < bytes.length; i++) {
+          binaryString += String.fromCharCode(bytes[i]);
+        }
+        this.fileData = btoa(binaryString); // Convert to Base64
+        this.errorMessage = '';
+      };
+      reader.readAsArrayBuffer(file); // Read file as ArrayBuffer
     },
     getImportButtonClass(){
       if(this.disableImport){
