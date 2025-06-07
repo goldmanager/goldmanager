@@ -32,7 +32,8 @@ The controllers reside under `backend/src/main/java/com/my/goldmanager/controlle
 
 Data import is asynchronous. Use `POST /api/dataimport/import` with a JSON body containing `data` and
 `password`. The request returns HTTP `202 Accepted` when the import started. Poll
-`GET /api/dataimport/status` to check the current job status. The response contains the job status and
+`GET /api/dataimport/status` to check the current job status. This endpoint is publicly accessible so the
+UI can determine if an import is in progress before logging in. The response contains the job status and
 an optional message. Possible states are `IDLE`, `RUNNING`, `SUCCESS`, `FAILED` and `PASSWORD_ERROR`.
 If another import is triggered while one is already running the service responds with HTTP `409 Conflict`.
 

@@ -31,6 +31,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
@@ -49,8 +50,11 @@ public class TestSecurityConfiguration {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests(
-				(requests) -> requests.requestMatchers("/api/auth/login").permitAll().requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+                http.authorizeHttpRequests(
+                                (requests) -> requests.requestMatchers("/api/auth/login").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+                                                .requestMatchers("/api/**").authenticated()
+                                                .anyRequest().permitAll())
 				.httpBasic(httpBasic -> httpBasic.disable()).csrf((csfr) -> csfr.disable());
 		;
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
