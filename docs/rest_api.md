@@ -22,9 +22,18 @@ The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token m
 | Units | `/api/units` | `GET`, `GET /{name}`, `POST`, `PUT /{name}`, `DELETE /{name}` |
 | Prices | `/api/prices` | `GET` list, `GET /item/{id}`, `GET /material/{id}`, `GET /itemStorage/{id}`, grouping endpoints |
 | Price History | `/api/priceHistory` | `GET /{materialId}` with optional `startDate` and `endDate` |
+| Data Import | `/api/dataimport` | `POST /import` to start an import (returns `202`), `GET /status` for the current job status |
 | User Service | `/api/userService` | endpoints for managing users |
 
 The controllers reside under `backend/src/main/java/com/my/goldmanager/controller/`.
+
+## Data Import
+
+Data import is asynchronous. Use `POST /api/dataimport/import` with a JSON body containing `data` and
+`password`. The request returns HTTP `202 Accepted` when the import started. Poll
+`GET /api/dataimport/status` to check the current job status. The response is one of `IDLE`,
+`RUNNING`, `SUCCESS` or `FAILED`. If another import is triggered while one is
+already running the service responds with HTTP `409 Conflict`.
 
 ## Integration with the UI
 
