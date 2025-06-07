@@ -113,18 +113,18 @@ public class ExportDataCryptor {
 				throw new ValidationException("Invalid header format");
 			}
 
-			byte[] encryptedDataSizeBytes = new byte[8];
-			inflaterInputStream.read(encryptedDataSizeBytes);
+                        byte[] encryptedDataSizeBytes = new byte[8];
+                        DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
 			long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
 
-			byte[] salt = new byte[16];
-			inflaterInputStream.read(salt);
+                        byte[] salt = new byte[16];
+                        DataExportImportUtil.readFully(inflaterInputStream, salt);
 
-			byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
-			inflaterInputStream.read(iv);
+                        byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
+                        DataExportImportUtil.readFully(inflaterInputStream, iv);
 
-			byte[] encryptedData = new byte[(int) encryptedDataSize];
-			inflaterInputStream.read(encryptedData);
+                        byte[] encryptedData = new byte[(int) encryptedDataSize];
+                        DataExportImportUtil.readFully(inflaterInputStream, encryptedData);
 
 			SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
 			Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.DECRYPT_MODE);
@@ -142,14 +142,13 @@ public class ExportDataCryptor {
 							"Decrypted body can not be verified");
 				}
 
-				byte[] payloadSizeBytes = new byte[8];
-
-				cipherInputStream.read(payloadSizeBytes);
+                                byte[] payloadSizeBytes = new byte[8];
+                                DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
 
 				long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
 
-				byte[] payload = new byte[(int) payloadSize];
-				cipherInputStream.read(payload);
+                                byte[] payload = new byte[(int) payloadSize];
+                                DataExportImportUtil.readFully(cipherInputStream, payload);
 
 				return objectMapper.readValue(payload, ExportData.class);
 

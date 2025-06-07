@@ -43,14 +43,32 @@ public class DataExportImportUtil {
 	 * @param byteArray the byte array to convert
 	 * @return the long value representation of the byte array
 	 */
-	public static long byteArrayToLong(byte[] byteArray) {
-		if (byteArray.length != 8) {
-			throw new IllegalArgumentException("Byte array must be 8 bytes long");
-		}
-		long value = 0;
-		for (int i = 0; i < 8; i++) {
-			value = (value << 8) | (byteArray[i] & 0xFF);
-		}
-		return value;
-	}
+        public static long byteArrayToLong(byte[] byteArray) {
+                if (byteArray.length != 8) {
+                        throw new IllegalArgumentException("Byte array must be 8 bytes long");
+                }
+                long value = 0;
+                for (int i = 0; i < 8; i++) {
+                        value = (value << 8) | (byteArray[i] & 0xFF);
+                }
+                return value;
+        }
+
+        /**
+         * Reads bytes from the input stream until the buffer is completely filled.
+         *
+         * @param in     the InputStream to read from
+         * @param buffer the buffer to fill
+         * @throws IOException if the stream ends before the buffer is filled
+         */
+        public static void readFully(java.io.InputStream in, byte[] buffer) throws java.io.IOException {
+                int offset = 0;
+                while (offset < buffer.length) {
+                        int read = in.read(buffer, offset, buffer.length - offset);
+                        if (read == -1) {
+                                throw new java.io.IOException("Unexpected end of stream");
+                        }
+                        offset += read;
+                }
+        }
 }

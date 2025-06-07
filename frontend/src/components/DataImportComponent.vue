@@ -62,7 +62,6 @@ export default {
         }
       };
       reader.readAsDataURL(file);
-
     },
     getImportButtonClass(){
       if(this.disableImport){
