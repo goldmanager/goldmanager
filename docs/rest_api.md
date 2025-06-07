@@ -32,15 +32,16 @@ The controllers reside under `backend/src/main/java/com/my/goldmanager/controlle
 
 Data import is asynchronous. Use `POST /api/dataimport/import` with a JSON body containing `data` and
 `password`. The request returns HTTP `202 Accepted` when the import started. Poll
-`GET /api/dataimport/status` to check the current job status. The response is one of `IDLE`,
-`RUNNING`, `SUCCESS` or `FAILED`. If another import is triggered while one is
-already running the service responds with HTTP `409 Conflict`.
+`GET /api/dataimport/status` to check the current job status. The response contains the job status and
+an optional message. Possible states are `IDLE`, `RUNNING`, `SUCCESS`, `FAILED` and `PASSWORD_ERROR`.
+If another import is triggered while one is already running the service responds with HTTP `409 Conflict`.
 
 ## Data Export
 
 Data export mirrors the import workflow. Trigger the job with `POST /api/dataexport/export` providing
 `password` in the JSON body. The response is HTTP `202 Accepted` once the export started. Poll
-`GET /api/dataexport/status` until it returns `SUCCESS`, then download the result via
+`GET /api/dataexport/status` until it returns `SUCCESS`. The status payload also includes a message and
+may report `PASSWORD_ERROR` when the supplied password is invalid. Download the result via
 `GET /api/dataexport/download`. Starting a new export while one is running yields HTTP `409 Conflict`.
 
 ## Integration with the UI

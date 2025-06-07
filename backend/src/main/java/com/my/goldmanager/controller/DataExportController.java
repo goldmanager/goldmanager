@@ -31,6 +31,7 @@ import com.my.goldmanager.service.DataExportStatusService;
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.BadRequestException;
 import com.my.goldmanager.service.exception.ExportInProgressException;
+import com.my.goldmanager.rest.response.JobStatusResponse;
 
 @RestController
 @RequestMapping("/api/dataexport")
@@ -51,8 +52,10 @@ public class DataExportController {
         }
 
         @GetMapping("/status")
-        public ResponseEntity<JobStatus> getStatus() {
-                return ResponseEntity.ok(dataExportStatusService.getStatus());
+        public ResponseEntity<JobStatusResponse> getStatus() {
+                return ResponseEntity
+                                .ok(new JobStatusResponse(dataExportStatusService.getStatus(),
+                                                dataExportStatusService.getMessage()));
         }
 
         @GetMapping("/download")

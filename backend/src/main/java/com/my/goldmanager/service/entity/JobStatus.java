@@ -4,5 +4,6 @@ public enum JobStatus {
     IDLE,
     RUNNING,
     SUCCESS,
-    FAILED
+    FAILED,
+    PASSWORD_ERROR
 }

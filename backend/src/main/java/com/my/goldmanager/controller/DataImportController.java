@@ -18,6 +18,7 @@ import com.my.goldmanager.service.ImportStatusService;
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ImportInProgressException;
 import com.my.goldmanager.service.exception.BadRequestException;
+import com.my.goldmanager.rest.response.JobStatusResponse;
 
 @RestController
 @RequestMapping("/api/dataimport")
@@ -40,8 +41,10 @@ public class DataImportController {
         }
 
         @GetMapping("/status")
-        public ResponseEntity<JobStatus> getStatus() {
-                return ResponseEntity.ok(importStatusService.getStatus());
+        public ResponseEntity<JobStatusResponse> getStatus() {
+                return ResponseEntity
+                                .ok(new JobStatusResponse(importStatusService.getStatus(),
+                                                importStatusService.getMessage()));
         }
 
         @ExceptionHandler(ImportInProgressException.class)
