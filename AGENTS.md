@@ -89,6 +89,9 @@ authentication for integration tests and is activated when running with the
 Any documentation (especially javadoc and comments in code) shall be written in english.
 Also documentation in AGENTS.md and any available README.md files shall be written in english.
 
+## REST API Documentation
+The file `docs/rest_api.md` explains the available REST endpoints and how the Vue frontend consumes them. Keep this document up to date whenever the API or its usage changes.
+
 ## AGENTS.md Maintenance
 
 The instructions in this file must accurately reflect the repository. Whenever
