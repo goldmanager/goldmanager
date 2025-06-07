@@ -33,7 +33,8 @@ export default {
       logoUrl: require('@/assets/logo.png'),
       importStatus: '',
       importStatusMessage: '',
-      showImportStatus: false
+      showImportStatus: false,
+      statusIntervalId: null
     };
   },
   methods: {
@@ -55,16 +56,46 @@ export default {
       }
     }
     ,
+    startStatusInterval() {
+      if (this.statusIntervalId == null) {
+        this.statusIntervalId = setInterval(this.checkImportStatus, 5000);
+      }
+    },
+    clearStatusInterval() {
+      if (this.statusIntervalId != null) {
+        clearInterval(this.statusIntervalId);
+        this.statusIntervalId = null;
+      }
+    },
     async checkImportStatus() {
       try {
         const response = await axios.get('/dataimport/status');
         this.importStatus = response.data.status;
-        this.importStatusMessage =
-          this.importStatus === 'RUNNING'
-            ? 'A data import is currently running. Login is not possible at the moment.'
-            : response.data.message || '';
-        this.showImportStatus = this.importStatus === 'RUNNING';
+
+        if (this.importStatus === 'RUNNING') {
+          this.importStatusMessage =
+            'A data import is currently running. Login is not possible at the moment.';
+          this.showImportStatus = true;
+          this.startStatusInterval();
+          this.errorMessage = '';
+        } else {
+          this.clearStatusInterval();
+          this.showImportStatus = false;
+          if (this.importStatus === 'PASSWORD_ERROR') {
+            this.errorMessage =
+              'The current data import failed because of an invalid import password. Please log in and restart the import.';
+          } else if (this.importStatus === 'FAILED') {
+            const backendMsg = response.data.message ? response.data.message + '. ' : '';
+            this.errorMessage =
+              backendMsg +
+              'Try logging in and starting the data import again. If login fails, please restart the application.';
+          } else {
+            this.errorMessage = '';
+          }
+          this.importStatusMessage = response.data.message || '';
+        }
       } catch (error) {
+        this.clearStatusInterval();
         this.showImportStatus = false;
       }
     }
@@ -72,6 +103,10 @@ export default {
   },
   async mounted() {
     await this.checkImportStatus();
+  }
+  ,
+  beforeUnmount() {
+    this.clearStatusInterval();
   }
 };
 </script>
