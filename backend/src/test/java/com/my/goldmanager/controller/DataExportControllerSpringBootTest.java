@@ -23,6 +23,7 @@ import com.my.goldmanager.service.DataExportService;
 import com.my.goldmanager.service.DataExportStatusService;
 import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.entity.JobStatus;
+import com.my.goldmanager.rest.response.JobStatusResponse;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -90,5 +91,28 @@ class DataExportControllerSpringBootTest {
         Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.anyString());
         Thread.sleep(350);
         org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, dataExportStatusService.getStatus());
+    }
+
+    @Test
+    void testStatusEndpoint() throws Exception {
+        byte[] mockData = "exportedData".getBytes();
+        Mockito.when(dataExportService.exportData(Mockito.anyString())).thenReturn(mockData);
+        ExportDataRequest req = new ExportDataRequest();
+        req.setPassword("validPassword");
+
+        mockMvc.perform(TestHTTPClient.doPost("/api/dataexport/export").contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(req)))
+                .andExpect(status().isAccepted());
+
+        String body = mockMvc.perform(TestHTTPClient.doGet("/api/dataexport/status"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        JobStatusResponse resp = new ObjectMapper().readValue(body, JobStatusResponse.class);
+        org.junit.jupiter.api.Assertions.assertTrue(resp.getStatus() == JobStatus.RUNNING
+                || resp.getStatus() == JobStatus.SUCCESS);
+        Thread.sleep(50);
+        body = mockMvc.perform(TestHTTPClient.doGet("/api/dataexport/status"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        resp = new ObjectMapper().readValue(body, JobStatusResponse.class);
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, resp.getStatus());
     }
 }

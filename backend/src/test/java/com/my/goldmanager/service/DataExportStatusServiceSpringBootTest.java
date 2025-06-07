@@ -30,6 +30,7 @@ class DataExportStatusServiceSpringBootTest {
         Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.any());
         Thread.sleep(50);
         assertEquals(JobStatus.SUCCESS, dataExportStatusService.getStatus());
+        assertEquals("", dataExportStatusService.getMessage());
     }
 
     @Test
@@ -43,6 +44,7 @@ class DataExportStatusServiceSpringBootTest {
         Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.any());
         Thread.sleep(350);
         assertEquals(JobStatus.SUCCESS, dataExportStatusService.getStatus());
+        assertEquals("", dataExportStatusService.getMessage());
     }
 
     @Test
@@ -52,5 +54,17 @@ class DataExportStatusServiceSpringBootTest {
         Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.any());
         Thread.sleep(50);
         assertEquals(JobStatus.FAILED, dataExportStatusService.getStatus());
+        assertEquals("fail", dataExportStatusService.getMessage());
+    }
+
+    @Test
+    void testPasswordErrorStatus() throws Exception {
+        Mockito.doThrow(new IllegalArgumentException("Password invalid"))
+                .when(dataExportService).exportData(Mockito.any());
+        dataExportStatusService.startExport("bad");
+        Mockito.verify(dataExportService, Mockito.timeout(1000)).exportData(Mockito.any());
+        Thread.sleep(50);
+        assertEquals(JobStatus.PASSWORD_ERROR, dataExportStatusService.getStatus());
+        assertEquals("Password invalid", dataExportStatusService.getMessage());
     }
 }

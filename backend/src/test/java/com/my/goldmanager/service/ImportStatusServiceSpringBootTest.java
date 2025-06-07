@@ -29,6 +29,7 @@ class ImportStatusServiceSpringBootTest {
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
         assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
+        assertEquals("", importStatusService.getMessage());
     }
 
     @Test
@@ -43,6 +44,7 @@ class ImportStatusServiceSpringBootTest {
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(350);
         assertEquals(JobStatus.SUCCESS, importStatusService.getStatus());
+        assertEquals("", importStatusService.getMessage());
     }
 
     @Test
@@ -52,6 +54,7 @@ class ImportStatusServiceSpringBootTest {
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
         assertEquals(JobStatus.FAILED, importStatusService.getStatus());
+        assertEquals("fail", importStatusService.getMessage());
     }
 
     @Test
@@ -62,6 +65,8 @@ class ImportStatusServiceSpringBootTest {
         importStatusService.startImport("data".getBytes(), "bad");
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        assertEquals(JobStatus.FAILED, importStatusService.getStatus());
+        assertEquals(JobStatus.PASSWORD_ERROR, importStatusService.getStatus());
+        assertEquals("Reading of decrypted data failed, maybe the provided password is incorrect?",
+                importStatusService.getMessage());
     }
 }

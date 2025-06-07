@@ -21,6 +21,7 @@ import com.my.goldmanager.service.DataImportService;
 import com.my.goldmanager.service.ImportStatusService;
 import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.entity.JobStatus;
+import com.my.goldmanager.rest.response.JobStatusResponse;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -102,12 +103,18 @@ class DataImportControllerSpringBootTest {
                 .perform(TestHTTPClient.doPost("/api/dataimport/import").contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
-        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
-                .andExpect(status().isOk());
+        String body = mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        JobStatusResponse resp = new ObjectMapper().readValue(body, JobStatusResponse.class);
+        org.junit.jupiter.api.Assertions.assertTrue(resp.getStatus() == JobStatus.RUNNING
+                || resp.getStatus() == JobStatus.SUCCESS);
+        org.junit.jupiter.api.Assertions.assertEquals("", resp.getMessage());
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
-                .andExpect(status().isOk());
+        body = mockMvc.perform(TestHTTPClient.doGet("/api/dataimport/status"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        resp = new ObjectMapper().readValue(body, JobStatusResponse.class);
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.SUCCESS, resp.getStatus());
     }
 
     @Test
@@ -127,6 +134,9 @@ class DataImportControllerSpringBootTest {
 
         Mockito.verify(dataImportService, Mockito.timeout(1000)).importData(Mockito.any(), Mockito.any());
         Thread.sleep(50);
-        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.FAILED, importStatusService.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(JobStatus.PASSWORD_ERROR, importStatusService.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "Reading of decrypted data failed, maybe the provided password is incorrect?",
+                importStatusService.getMessage());
     }
 }
