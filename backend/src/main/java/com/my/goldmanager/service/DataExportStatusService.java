@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.my.goldmanager.service.entity.JobStatus;
 import com.my.goldmanager.service.exception.ExportInProgressException;
+import com.my.goldmanager.service.exception.ValidationException;
 
 @Service
 public class DataExportStatusService {
     private final AtomicReference<JobStatus> status = new AtomicReference<>(JobStatus.IDLE);
     private final AtomicReference<byte[]> data = new AtomicReference<>();
+    private final AtomicReference<String> message = new AtomicReference<>("");
 
     @Autowired
     private DataExportService dataExportService;
@@ -26,6 +28,7 @@ public class DataExportStatusService {
             throw new ExportInProgressException("Export already running");
         }
         status.set(JobStatus.RUNNING);
+        message.set("");
         data.set(null);
         applicationContext.getBean(DataExportStatusService.class).executeExport(password);
     }
@@ -36,8 +39,13 @@ public class DataExportStatusService {
             byte[] result = dataExportService.exportData(password);
             data.set(result);
             status.set(JobStatus.SUCCESS);
+            message.set("");
+        } catch (ValidationException | IllegalArgumentException e) {
+            status.set(JobStatus.PASSWORD_ERROR);
+            message.set(e.getMessage());
         } catch (Exception e) {
             status.set(JobStatus.FAILED);
+            message.set(e.getMessage());
         }
     }
 
@@ -47,5 +55,9 @@ public class DataExportStatusService {
 
     public byte[] getData() {
         return data.get();
+    }
+
+    public String getMessage() {
+        return message.get();
     }
 }
