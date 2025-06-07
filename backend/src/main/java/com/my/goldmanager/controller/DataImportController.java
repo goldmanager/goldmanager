@@ -13,12 +13,10 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.my.goldmanager.rest.request.ImportDataRequest;
 import com.my.goldmanager.rest.response.ErrorResponse;
-
-import com.my.goldmanager.service.ImportStatusService;
-import com.my.goldmanager.service.entity.JobStatus;
-import com.my.goldmanager.service.exception.ImportInProgressException;
-import com.my.goldmanager.service.exception.BadRequestException;
 import com.my.goldmanager.rest.response.JobStatusResponse;
+import com.my.goldmanager.service.ImportStatusService;
+import com.my.goldmanager.service.exception.BadRequestException;
+import com.my.goldmanager.service.exception.ImportInProgressException;
 
 @RestController
 @RequestMapping("/api/dataimport")

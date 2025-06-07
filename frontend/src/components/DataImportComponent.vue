@@ -9,7 +9,8 @@
         <input type="file" @change="handleFileUpload" />
         <input v-model="importPassword" type="password" placeholder="Import Password">
         <input v-model="importPasswordConfirm" type="password" placeholder="Import Password (Confirm)">
-        <button class="actionbutton" @click="importData" :disabled="disableImport">Import</button>
+
+        <button :class="getImportButtonClass" @click="importData" :disabled="disableImport">Import</button>
       </div>
     </div>
   </div>
@@ -37,12 +38,16 @@ export default {
   },
   computed: {
     disableImport() {
-      return this.importStatus === 'RUNNING' || !this.fileData;
+      console.log("file data null?:",this.fileData == null);
+      console.log("ImportStatus:",this.importStatus);
+      console.log("DisableImport:",this.importStatus === 'RUNNING' || !this.fileData);
+      return this.importStatus === 'RUNNING' || this.fileData == null;
     }
   },
   methods: {
     ...mapActions(['logout']),
     handleFileUpload(event) {
+
       const file = event.target.files[0];
       if (!file) {
         this.fileData = null;
@@ -50,16 +55,19 @@ export default {
       }
       const reader = new FileReader();
       reader.onload = () => {
-        const arrayBuffer = reader.result;
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        this.fileData = btoa(binary);
+       this.fileData  = reader.result;
       };
       reader.readAsArrayBuffer(file);
     },
+    getImportButtonClass(){
+      if(this.disableImport){
+        return "actionbutton_disabled";
+      }
+      else{
+      return "actionbutton";
+      }
+    },
+
     async importData() {
       this.statusMessage = '';
       this.errorMessage = '';
@@ -67,7 +75,7 @@ export default {
         this.errorMessage = 'Passwords do not match!';
         return;
       }
-      if (!this.fileData) {
+      if (this.fileData == null) {
         this.errorMessage = 'Please select a file to import.';
         return;
       }
