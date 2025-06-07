@@ -92,6 +92,9 @@ Also documentation in AGENTS.md and any available README.md files shall be writt
 ## REST API Documentation
 The file `docs/rest_api.md` explains the available REST endpoints and how the Vue frontend consumes them. Keep this document up to date whenever the API or its usage changes.
 
+## Third-Party License Tracking
+Changes to dependencies in `backend/build.gradle` or `frontend/package.json` require an update to `docs/third_party_licenses.md`. Keep the table of libraries and licenses in that file up to date so license information remains accurate.
+
 ## AGENTS.md Maintenance
 
 The instructions in this file must accurately reflect the repository. Whenever
