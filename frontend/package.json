@@ -22,28 +22,10 @@
     "@babel/eslint-parser": "^7.12.16",
     "@babel/preset-env": "^7.24.5",
     "@vitejs/plugin-vue": "^5.0.4",
-    "eslint": "^8.56.2",
-    "eslint-plugin-vue": "^9.27.0",
+    "eslint": "^9.28.0",
+    "eslint-plugin-vue": "^10.2.0",
     "vite": "^6.3.5",
     "vue-eslint-parser": "^10.1.3"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-recommended",
-      "eslint:recommended"
-    ],
-    "parser": "vue-eslint-parser",
-    "parserOptions": {
-      "parser": "@babel/eslint-parser",
-      "requireConfigFile": false,
-      "ecmaVersion": 2020,
-      "sourceType": "module"
-    },
-    "rules": {}
   },
   "browserslist": [
     "> 1%",
