@@ -18,7 +18,7 @@ export default {
 
 <style>
 .main {
-  background-image: url('~@/assets/logo.png'); /* Verwende das Bild als Hintergrund */
+  background-image: url('@/assets/logo.png'); /* Use the logo as background */
   background-size: cover;
   background-position: center; /* Zentriert das Bild */
   width: 100%; /* Breite des Formulars */
