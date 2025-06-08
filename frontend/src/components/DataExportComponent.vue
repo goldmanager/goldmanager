@@ -100,7 +100,7 @@ export default {
           this.clearStatusInterval();
           this.showExportStatus = false;
           if (this.exportStatus === 'PASSWORD_ERROR') {
-            this.errorMessage = 'The data export failed because of an invalid export password.';
+            this.errorMessage = `The data export failed because of an invalid export password: ${backendMsg}`.trim();
             this.exportStarted = false;
           } else if (this.exportStatus === 'FAILED') {
             this.errorMessage = `${backendMsg} Please start the export again.`.trim();
