@@ -24,7 +24,7 @@ COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/sta
 
 RUN gradle clean bootJar cyclonedxBom -PskipTests
 
-FROM cgr.dev/chainguard/syft:latest as generate-sbom
+FROM anchore/syft:latest as generate-sbom
 WORKDIR /work
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar ./app.jar
 COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json ./application.cdx.json
