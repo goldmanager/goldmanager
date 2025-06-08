@@ -66,9 +66,9 @@ instance.interceptors.response.use(response => {
 		sessionStorage.removeItem('username');
 		sessionStorage.removeItem('jwtRefresh');
 		store.dispatch('logout');
-		if (router.currentRoute.path !== '/login') {
-			router.push({ path: '/login' });
-		}
+                if (router.currentRoute.value.path !== '/login') {
+                        router.push({ path: '/login' });
+                }
 	
 	}
 	return Promise.reject(error);
