@@ -37,7 +37,8 @@ This repository contains two sub-projects:
      and copy the frontend build into `src/main/resources/static`. The resulting
      backend SBOM is placed under `build/reports/application.cdx.json`.
   3. A `generate-sbom` stage based on `anchore/syft:latest` produces a combined
-     image SBOM.
+     image SBOM. The Syft binary resides at `/syft`, so it is invoked in exec
+     form: `RUN ["/syft", "dir:.", "-o", "cyclonedx-json=image.cdx.json"]`.
   4. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
      includes the backend, frontend and the combined image SBOM under `/bom`.
 * Build with BuildKit enabled to create SBOM and provenance attestations:
