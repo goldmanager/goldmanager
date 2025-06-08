@@ -41,24 +41,22 @@ import com.my.goldmanager.service.exception.ValidationException;
 @Service
 public class ExportDataCryptor {
 
-       /** Maximum allowed size for the encrypted payload in bytes */
-       public static final long MAX_ENCRYPTED_DATA_SIZE = 50L * 1024 * 1024; // 50 MB
-
 	public static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
 	public static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
-        @Autowired
-        private PasswordPolicyValidationService passwordPolicyValidationService;
+	@Autowired
+	private PasswordPolicyValidationService passwordPolicyValidationService;
 
-       @Value("${com.my.goldmanager.service.dataexpimp.maxEncryptedDataSize:52428800}")
-       private long maxEncryptedDataSize;
+	@Value("${com.my.goldmanager.service.dataexpimp.maxEncryptedDataSize:52428800}")
+	private long maxEncryptedDataSize;
 
-       public long getMaxEncryptedDataSize() {
-               return maxEncryptedDataSize;
-       }
+	public long getMaxEncryptedDataSize() {
+		return maxEncryptedDataSize;
+	}
+
 	/**
 	 * Encrypts the ExportData object using the provided encryption password.
 	 * 
@@ -74,8 +72,7 @@ public class ExportDataCryptor {
 		try {
 			passwordPolicyValidationService.validate(encryptionPassword);
 		} catch (ValidationException ve) {
-			throw new PasswordValidationException(
-					ve.getMessage(), ve);
+			throw new PasswordValidationException(ve.getMessage(), ve);
 		}
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -131,22 +128,22 @@ public class ExportDataCryptor {
 				throw new ValidationException("Invalid header format");
 			}
 
-                        byte[] encryptedDataSizeBytes = new byte[8];
-                        DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
-                        long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
+			byte[] encryptedDataSizeBytes = new byte[8];
+			DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
+			long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
 
-                        if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
-                                throw new ValidationException("Encrypted payload exceeds configured maximum size");
-                        }
+			if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
+				throw new ValidationException("Encrypted payload exceeds configured maximum size");
+			}
 
-                        byte[] salt = new byte[16];
-                        DataExportImportUtil.readFully(inflaterInputStream, salt);
+			byte[] salt = new byte[16];
+			DataExportImportUtil.readFully(inflaterInputStream, salt);
 
-                        byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
-                        DataExportImportUtil.readFully(inflaterInputStream, iv);
+			byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
+			DataExportImportUtil.readFully(inflaterInputStream, iv);
 
-                        byte[] encryptedData = new byte[(int) encryptedDataSize];
-                        DataExportImportUtil.readFully(inflaterInputStream, encryptedData);
+			byte[] encryptedData = new byte[(int) encryptedDataSize];
+			DataExportImportUtil.readFully(inflaterInputStream, encryptedData);
 
 			SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
 			Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.DECRYPT_MODE);
@@ -160,23 +157,20 @@ public class ExportDataCryptor {
 					throw new ValidationException("Invalid body header length");
 				}
 				if (!Arrays.equals(bodyStart, body_start)) {
-					throw new ValidationException(
-							"Decrypted body can not be verified");
+					throw new ValidationException("Decrypted body can not be verified");
 				}
 
-                                byte[] payloadSizeBytes = new byte[8];
-                                DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
+				byte[] payloadSizeBytes = new byte[8];
+				DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
 
-                               long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
+				long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
 
-                               if (payloadSize <= 0 || payloadSize > maxEncryptedDataSize
-                                               || payloadSize > Integer.MAX_VALUE) {
-                                       throw new ValidationException(
-                                                       "Decrypted payload exceeds configured maximum size");
-                               }
+				if (payloadSize <= 0 || payloadSize > maxEncryptedDataSize || payloadSize > Integer.MAX_VALUE) {
+					throw new ValidationException("Decrypted payload exceeds configured maximum size");
+				}
 
-                               byte[] payload = new byte[(int) payloadSize];
-                               DataExportImportUtil.readFully(cipherInputStream, payload);
+				byte[] payload = new byte[(int) payloadSize];
+				DataExportImportUtil.readFully(cipherInputStream, payload);
 
 				return objectMapper.readValue(payload, ExportData.class);
 
