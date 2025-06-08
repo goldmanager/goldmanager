@@ -21,6 +21,10 @@ Please see also https://github.com/goldmanager/goldmanager-dockercompose for an 
 The frontend is built and tested with Node.js 20. Install dependencies with `npm install` inside `frontend/` before running `npm run lint` and `npm run test` or starting the dev server.
 The backend requires Java 21 and can be tested with `./gradlew test` in the `backend/` directory.
 
+## Configuration
+
+The size of encrypted export data that can be processed during import is limited. You can adjust the limit via the property `com.my.goldmanager.service.dataexpimp.maxEncryptedDataSize` in `backend/src/main/resources/application.properties`. The default value is `52428800` bytes (50 MB).
+
 ## Data Import
 Data import is processed asynchronously. Use `POST /api/dataimport/import` with a JSON body containing `data` and `password`. The request returns HTTP `202 Accepted`.
 The current status can be retrieved via `GET /api/dataimport/status` returning `IDLE`, `RUNNING`, `SUCCESS` or `FAILED`. If another import is triggered while a job

@@ -29,7 +29,12 @@ import com.my.goldmanager.service.exception.ValidationException;
 class ExportDataCryptorTest {
 
 	@Autowired
-	private ExportDataCryptor exportDataCryptor;
+        private ExportDataCryptor exportDataCryptor;
+
+       @Test
+       void testMaxEncryptedDataSizeProperty() {
+               assertEquals(52428800, exportDataCryptor.getMaxEncryptedDataSize());
+       }
 
 	@Test
 	void testEncryptAndDecrypt_Success() throws Exception {
