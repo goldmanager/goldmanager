@@ -56,7 +56,7 @@ export default {
 	data() {
 		return {
 			itemStorages: [],
-			newItemStorage: { // Datenmodell für ein neues Material
+                        newItemStorage: { // Data model for a new material
 				name: '',
 				description: ''
 			},
