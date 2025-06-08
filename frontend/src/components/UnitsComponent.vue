@@ -1,52 +1,144 @@
 <template>
   <div class="main">
     <div class="content">
-    <div><h1>Units</h1></div>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-	<div><input v-model="searchQuery" type="text" placeholder="Search by unit name"></div>
-    <table >
-      <thead>
-        <tr>
-          <th  @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th  @click="sortBy('factor')">Conversion factor to 1 Oz <span v-if="currentSort === 'factor'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-       <tr v-if="!editedObject">
-          <td><input v-model="newUnit.name" type="text" placeholder="Name"></td>
-          <td><input v-model.number="newUnit.factor" type="number" placeholder="Factor"></td>
+      <div><h1>Units</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by unit name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('name')">
+              Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('factor')">
+              Conversion factor to 1 Oz <span v-if="currentSort === 'factor'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="!editedObject">
+            <td>
+              <input
+                v-model="newUnit.name"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="newUnit.factor"
+                type="number"
+                placeholder="Factor"
+              >
+            </td>
 
-          <td>
-            <button class="actionbutton" @click="addUnit()">Add New</button>
-          </td>
-        </tr>
-		<tr v-else>
-			<td><input v-model="editedObject.name" type="text" placeholder="Name" disabled="true"></td>
-			<td><input v-model.number="editedObject.factor" type="number" placeholder="Factor"></td>
-			<td>
-				<button class="actionbutton" @click="updateUnit">Save</button>
-				<button class="actionbutton" @click="cancelEdit">Cancel</button>
-			</td>
-		</tr>
-        <tr :class="getHighlightClass(unit.name)" v-for="unit in paginatedObjects" :key="unit.name">
-          <td>{{unit.name}}</td>
-          <td>{{unit.factor}}</td>
-          <td>
-			<button v-if="editedObject && editedObject.name === unit.name" class="actionbutton" @click="cancelEdit">Cancel</button>
-            <button v-if="!editedObject" class="actionbutton" @click="editObject(unit)">Edit</button>
-            <button v-if="!editedObject" class="actionbutton" @click="deleteUnit(unit.name)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-	<div class="pagination" v-if="totalPages > 0">	
-		<button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-		<span>Page {{ currentPage }} of {{ totalPages }}</span>
-		<button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-		<span>(Items per page: {{pageSize}})</span>
-	</div>
-   </div>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addUnit()"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr v-else>
+            <td>
+              <input
+                v-model="editedObject.name"
+                type="text"
+                placeholder="Name"
+                disabled="true"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="editedObject.factor"
+                type="number"
+                placeholder="Factor"
+              >
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updateUnit"
+              >
+                Save
+              </button>
+              <button
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="unit in paginatedObjects"
+            :key="unit.name"
+            :class="getHighlightClass(unit.name)"
+          >
+            <td>{{ unit.name }}</td>
+            <td>{{ unit.factor }}</td>
+            <td>
+              <button
+                v-if="editedObject && editedObject.name === unit.name"
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="editObject(unit)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="deleteUnit(unit.name)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >	
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -73,12 +165,6 @@ export default {
 		editedObject: null
     };
 
-  },
-
-  mounted() {
-	this.currentSort=localStorage.getItem("UnitsColumnsSort")?localStorage.getItem("UnitsColumnsSort"):"name";
-	this.currentSortDir = localStorage.getItem("UnitsColumnsSortDir")?localStorage.getItem("UnitsColumnsSortDir"):"asc";
-    this.fetchUnits();
   },
   computed: {
   sortedObjects() {
@@ -122,6 +208,12 @@ export default {
 		return this.sortedObjects;
 	}
 },
+
+  mounted() {
+	this.currentSort=localStorage.getItem("UnitsColumnsSort")?localStorage.getItem("UnitsColumnsSort"):"name";
+	this.currentSortDir = localStorage.getItem("UnitsColumnsSortDir")?localStorage.getItem("UnitsColumnsSortDir"):"asc";
+    this.fetchUnits();
+  },
   methods: {
 	editObject(object) {
 		this.errorMessage="";
