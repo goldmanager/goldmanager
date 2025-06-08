@@ -2,15 +2,41 @@
   <div class="main">
     <div class="content">
       <div><h1>Data Import</h1></div>
-      <div v-if="statusMessage">{{ statusMessage }}</div>
-      <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-      <div v-if="showImportStatus">{{ importStatusMessage }}</div>
+      <div v-if="statusMessage">
+        {{ statusMessage }}
+      </div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div v-if="showImportStatus">
+        {{ importStatusMessage }}
+      </div>
       <div>
-        <input type="file" @change="handleFileUpload" />
-        <input v-model="importPassword" type="password" placeholder="Import Password">
-        <input v-model="importPasswordConfirm" type="password" placeholder="Import Password (Confirm)">
+        <input
+          type="file"
+          @change="handleFileUpload"
+        >
+        <input
+          v-model="importPassword"
+          type="password"
+          placeholder="Import Password"
+        >
+        <input
+          v-model="importPasswordConfirm"
+          type="password"
+          placeholder="Import Password (Confirm)"
+        >
 
-        <button :class="getImportButtonClass" @click="importData" :disabled="disableImport">Import</button>
+        <button
+          :class="getImportButtonClass"
+          :disabled="disableImport"
+          @click="importData"
+        >
+          Import
+        </button>
       </div>
     </div>
   </div>
@@ -36,15 +62,21 @@ export default {
       importStarted: false
     };
   },
-  computed: {
-    disableImport() {
-      console.log("file data null?:",this.fileData == null);
-      console.log("ImportStatus:",this.importStatus);
-      console.log("DisableImport:",this.importStatus === 'RUNNING' || !this.fileData);
-      return this.importStatus === 'RUNNING' || this.fileData == null;
-    }
-  },
-  methods: {
+    computed: {
+      disableImport() {
+        console.log("file data null?:",this.fileData == null);
+        console.log("ImportStatus:",this.importStatus);
+        console.log("DisableImport:",this.importStatus === 'RUNNING' || !this.fileData);
+        return this.importStatus === 'RUNNING' || this.fileData == null;
+      }
+    },
+    async mounted() {
+      await this.checkImportStatus();
+    },
+    beforeUnmount() {
+      this.clearStatusInterval();
+    },
+    methods: {
     ...mapActions(['logout']),
     handleFileUpload(event) {
       const file = event.target.files[0];
@@ -128,6 +160,7 @@ export default {
       } catch (error) {
         this.clearStatusInterval();
         this.showImportStatus = false;
+        this.setErrorMessage(error, 'Error checking import status.');
       }
     },
     startStatusInterval() {
@@ -160,12 +193,6 @@ export default {
         this.errorMessage = defaultMessage;
       }
     }
-  },
-  async mounted() {
-    await this.checkImportStatus();
-  },
-  beforeUnmount() {
-    this.clearStatusInterval();
   }
 };
 </script>

@@ -36,11 +36,14 @@ This repository contains two sub-projects:
   2. Gradle stage to build the backend using `gradle clean bootJar cyclonedxBom`
      and copy the frontend build into `src/main/resources/static`. The resulting
      backend SBOM is placed under `build/reports/application.cdx.json`.
-  3. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
-     includes both SBOM files under `/bom`.
-* Build with:
+  3. A `generate-sbom` stage based on `anchore/syft:latest` produces a combined
+     image SBOM. The Syft binary resides at `/syft`, so it is invoked in exec
+     form: `RUN ["/syft", "dir:.", "-o", "cyclonedx-json=image.cdx.json"]`.
+  4. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
+     includes the backend, frontend and the combined image SBOM under `/bom`.
+* Build with BuildKit enabled to create SBOM and provenance attestations:
   ```bash
-  docker build -t goldmanager .
+  DOCKER_BUILDKIT=1 docker build --sbom=goldmanager.sbom.json --provenance=mode=max -t goldmanager .
   ```
 
 ## Development Database
