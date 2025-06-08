@@ -195,8 +195,21 @@ class ExportDataCryptorTest {
                 Exception exception = assertThrows(ValidationException.class,
                                 () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
 
-				assertEquals("Encrypted payload exceeds configured maximum size", exception.getMessage());
+                                assertEquals("Encrypted payload exceeds configured maximum size", exception.getMessage());
         }
+
+       @Test
+       void testDecrypt_TooLargePayloadSize() throws Exception {
+               String encryptionPassword = "validPassword";
+
+               byte[] invalidData = createDataWithLargePayloadSize(encryptionPassword,
+                               ExportDataCryptor.MAX_ENCRYPTED_DATA_SIZE + 1);
+
+               Exception exception = assertThrows(ValidationException.class,
+                               () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
+
+               assertEquals("Decrypted payload exceeds configured maximum size", exception.getMessage());
+       }
 
         private byte[] createDataWithLargeEncryptedSize(long size) throws IOException {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -210,5 +223,35 @@ class ExportDataCryptorTest {
                 }
                 return bos.toByteArray();
         }
+
+       private byte[] createDataWithLargePayloadSize(String password, long payloadSize) throws Exception {
+               ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+               byte[] salt = DataExportImportCryptoUtil.generateSalt();
+               byte[] iv = DataExportImportCryptoUtil.generateIV();
+
+               SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(password, salt);
+               Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+               Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.ENCRYPT_MODE);
+
+               ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
+               try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
+                       cout.write(ExportDataCryptor.body_start);
+                       cout.write(DataExportImportUtil.longToByteArray(payloadSize));
+                       cout.flush();
+               }
+
+               try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(bos, deflater)) {
+                       deflaterOutputStream.write(ExportDataCryptor.header_start);
+                       byte[] encryptedPayload = encryptedData.toByteArray();
+                       deflaterOutputStream.write(DataExportImportUtil.longToByteArray(encryptedPayload.length));
+                       deflaterOutputStream.write(salt);
+                       deflaterOutputStream.write(iv);
+                       deflaterOutputStream.write(encryptedPayload);
+                       deflaterOutputStream.flush();
+               }
+
+               return bos.toByteArray();
+       }
 
 }
