@@ -15,6 +15,8 @@ This repository contains two sub-projects:
   ./gradlew test
   ```
 * Development server can be started with `./gradlew bootRun` after the database from `dev-env/compose.yaml` is running.
+* Default admin user and default admin passwords can be set by running with java parameters -DAPP_DEFAULT_USER and -DAPP_DEFAULT_PASSWORD
+** e.G. -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!
 * Since during the first usage of ./gradlew the gradle binaries are downloaded the first build in asession can take a few minutes. Wait a reasonable time accordingly.
 
 ### Frontend
