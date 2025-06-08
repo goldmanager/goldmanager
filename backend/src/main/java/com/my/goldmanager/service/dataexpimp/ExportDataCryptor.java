@@ -29,6 +29,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,8 +50,15 @@ public class ExportDataCryptor {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@Autowired
-	private PasswordPolicyValidationService passwordPolicyValidationService;
+        @Autowired
+        private PasswordPolicyValidationService passwordPolicyValidationService;
+
+       @Value("${com.my.goldmanager.service.dataexpimp.maxEncryptedDataSize:52428800}")
+       private long maxEncryptedDataSize;
+
+       public long getMaxEncryptedDataSize() {
+               return maxEncryptedDataSize;
+       }
 	/**
 	 * Encrypts the ExportData object using the provided encryption password.
 	 * 
@@ -126,9 +134,9 @@ public class ExportDataCryptor {
                         byte[] encryptedDataSizeBytes = new byte[8];
                         DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
                         long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
-                        if (encryptedDataSize < 0 || encryptedDataSize > MAX_ENCRYPTED_DATA_SIZE
-                                        || encryptedDataSize > Integer.MAX_VALUE) {
-                                throw new ValidationException("Invalid encrypted data size");
+
+                        if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
+                                throw new ValidationException("Encrypted payload exceeds configured maximum size");
                         }
 
                         byte[] salt = new byte[16];
