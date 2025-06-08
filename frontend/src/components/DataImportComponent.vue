@@ -59,15 +59,14 @@ export default {
       showImportStatus: false,
       statusIntervalId: null,
       importStatus: '',
-      importStarted: false
+      importStarted: false,
+      importFinished: false
     };
   },
     computed: {
       disableImport() {
-        console.log("file data null?:",this.fileData == null);
-        console.log("ImportStatus:",this.importStatus);
-        console.log("DisableImport:",this.importStatus === 'RUNNING' || !this.fileData);
-        return this.importStatus === 'RUNNING' || this.fileData == null;
+
+        return this.importFinished || this.importStarted || this.importStatus === 'RUNNING' || this.fileData == null;
       }
     },
     async mounted() {
@@ -153,6 +152,7 @@ export default {
             this.errorMessage = `${backendMsg} Please start the import again.`.trim();
             this.importStarted = false;
           } else if (this.importStatus === 'SUCCESS' && this.importStarted) {
+            this.importFinished = true;
             this.statusMessage = 'Data imported successfully. Logging out in 30 seconds.';
             setTimeout(this.performLogout, 30000);
           }
