@@ -8,7 +8,12 @@ The backend exposes a set of endpoints under the `/api` prefix. They allow manag
 
 ## Authentication
 
-The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token is delivered only as an HttpOnly cookie named `jwt-token` and is therefore automatically included in subsequent requests. `/api/auth/refresh` refreshes the cookie and returns a JSON body with the new expiration data while `/api/auth/logoutuser` clears the session cookie.
+The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token is
+delivered only as an HttpOnly cookie named `jwt-token`. A CSRF token is also
+issued as a cookie named `XSRF-TOKEN`. Axios reads this cookie and sends the
+value in the `X-XSRF-TOKEN` header automatically. `/api/auth/refresh` refreshes
+the JWT cookie and returns a JSON body with the new expiration data while
+`/api/auth/logoutuser` clears the session cookie.
 
 ## Main Endpoints
 
@@ -47,7 +52,11 @@ may report `PASSWORD_ERROR` when the supplied password is invalid. Download the 
 
 ## Integration with the UI
 
-The Vue frontend uses Axios (`src/axios.js`) configured with the base URL `/api/`. The Axios instance automatically attaches the stored JWT token and refreshes it when needed. Components invoke the API through this instance to retrieve or modify data. Routes defined in `src/router/index.js` guard access and redirect to `/login` when no token is present.
+The Vue frontend uses Axios (`src/axios.js`) configured with the base URL `/api/`.
+It automatically sends the `jwt-token` and `XSRF-TOKEN` cookies with each
+request and refreshes the session when needed. Components invoke the API through
+this instance to retrieve or modify data. Routes defined in `src/router/index.js`
+guard access and redirect to `/login` when no username is stored.
 
 To start a local development environment:
 

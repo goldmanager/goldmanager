@@ -33,6 +33,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
@@ -53,15 +54,16 @@ public class DefaultSecurityConfiguration {
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf((csfr) -> csfr.disable())
-				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(
-                                (requests) -> requests.requestMatchers("/api/auth/login").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
-                                                .requestMatchers("/api/**").authenticated()
-                                                .anyRequest().permitAll())
-				.httpBasic(httpBasic -> httpBasic.disable());
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http.csrf(csrf -> csrf
+                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(
+                                                requests -> requests.requestMatchers("/api/auth/login").permitAll()
+                                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+                                                                .requestMatchers("/api/**").authenticated()
+                                                                .anyRequest().permitAll())
+                                .httpBasic(httpBasic -> httpBasic.disable());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

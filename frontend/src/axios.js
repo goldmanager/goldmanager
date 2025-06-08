@@ -27,7 +27,9 @@ async function refreshToken() {
 
 const instance = axios.create({
         baseURL: (import.meta.env.VITE_API_BASE_URL ?? "") + "/api/",
-        withCredentials: true
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN'
 });
 
 
