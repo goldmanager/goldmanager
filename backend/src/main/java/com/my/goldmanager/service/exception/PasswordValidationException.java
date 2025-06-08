@@ -1,6 +1,6 @@
 package com.my.goldmanager.service.exception;
 
-public class PasswordValidationException extends Exception {
+public class PasswordValidationException extends ValidationException {
 
 	private static final long serialVersionUID = 3078802833848354118L;
 
