@@ -15,6 +15,7 @@ This repository contains two sub-projects:
   ./gradlew test
   ```
 * Development server can be started with `./gradlew bootRun` after the database from `dev-env/compose.yaml` is running.
+* Since during the first usage of ./gradlew the gradle binaries are downloaded the first build in asession can take a few minutes. Wait a reasonable time accordingly.
 
 ### Frontend
 * Install dependencies and run the linter or development server:
