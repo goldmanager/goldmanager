@@ -1,64 +1,177 @@
 <template>
   <div class="main">
     <div class="content">
-	    <div><h1>ItemTypes</h1></div>
-	    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-		<div><input v-model="searchQuery" type="text" placeholder="Search by Itemtype name"></div>
-	    <table >
-	      <thead>
-	        <tr>
-	          <th @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-	          <th @click="sortBy('modifier')">Modfier <span v-if="currentSort === 'modifier'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-	          <th @click="sortBy('metal')">Metal <span v-if="currentSort === 'metal'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-	          <th>Actions</th>
-	        </tr>
-	      </thead>
-	      <tbody>
-	        <tr v-if="!editedObject">
-	          <td><input v-model="newItemType.name" type="text" placeholder="Name" required="true"></td>
-	          <td><input v-model.number="newItemType.modifier" type="number" placeholder="Factor"></td>
-	          <td>
-	            <select id="options" v-model="newItemType.material.id">
-	              <option v-for="metal in metals" :key="metal.value" :value="metal.value">{{ metal.text }}</option>
-	            </select>
-	          </td>
-	          <td>
-	            <button class="actionbutton" @click="addItemType()">Add New</button>
-	          </td>
-	        </tr>
-			<tr v-if="editedObject">
-			  <td><input v-model="editedObject.name" type="text" placeholder="Name" required="true"></td>
-			  <td><input v-model.number="editedObject.modifier" type="number" placeholder="Factor"></td>
-			  <td>
-			    <select id="options" v-model="editedObject.material.id">
-			      <option v-for="metal in metals" :key="metal.value" :value="metal.value">{{ metal.text }}</option>
-			    </select>
-			  </td>
-			  <td>
-				<button class="actionbutton"  @click="updateObject()">Save</button>
-				<button class="actionbutton"  @click="cancelEdit">Cancel</button>
-			  </td>
-			</tr>
-			<tr :class="getHighlightClass(object.id)" v-for="object in paginatedObjects" :key="object.id">
-	          <td>{{object.name}}</td>
-	          <td>{{object.modifier}}</td>
-	          <td>
-	            {{object.material.name}}
-	          </td>
-	          <td>
-				<button class="actionbutton" v-if="editedObject == null"  @click="editObject(object)">Edit</button>
-				<button class="actionbutton" v-if="editedObject != null && editedObject.id === object.id"  @click="cancelEdit">Cancel</button>
-				<button class="actionbutton"  v-if="editedObject == null"  @click="deleteObject(object.id)">Delete</button>
-	          </td>
-	        </tr>
-	      </tbody>
-	    </table>
-		<div class="pagination" v-if="totalPages > 0">	
-			<button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-			<span>Page {{ currentPage }} of {{ totalPages }}</span>
-			<button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-			<span>(Items per page: {{pageSize}})</span>		 
-		</div>
+      <div><h1>ItemTypes</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by Itemtype name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('name')">
+              Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('modifier')">
+              Modfier <span v-if="currentSort === 'modifier'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('metal')">
+              Metal <span v-if="currentSort === 'metal'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="!editedObject">
+            <td>
+              <input
+                v-model="newItemType.name"
+                type="text"
+                placeholder="Name"
+                required="true"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="newItemType.modifier"
+                type="number"
+                placeholder="Factor"
+              >
+            </td>
+            <td>
+              <select
+                id="options"
+                v-model="newItemType.material.id"
+              >
+                <option
+                  v-for="metal in metals"
+                  :key="metal.value"
+                  :value="metal.value"
+                >
+                  {{ metal.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addItemType()"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr v-if="editedObject">
+            <td>
+              <input
+                v-model="editedObject.name"
+                type="text"
+                placeholder="Name"
+                required="true"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="editedObject.modifier"
+                type="number"
+                placeholder="Factor"
+              >
+            </td>
+            <td>
+              <select
+                id="options"
+                v-model="editedObject.material.id"
+              >
+                <option
+                  v-for="metal in metals"
+                  :key="metal.value"
+                  :value="metal.value"
+                >
+                  {{ metal.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updateObject()"
+              >
+                Save
+              </button>
+              <button
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="object in paginatedObjects"
+            :key="object.id"
+            :class="getHighlightClass(object.id)"
+          >
+            <td>{{ object.name }}</td>
+            <td>{{ object.modifier }}</td>
+            <td>
+              {{ object.material.name }}
+            </td>
+            <td>
+              <button
+                v-if="editedObject == null"
+                class="actionbutton"
+                @click="editObject(object)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="editedObject != null && editedObject.id === object.id"
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+              <button
+                v-if="editedObject == null"
+                class="actionbutton"
+                @click="deleteObject(object.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >	
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>		 
+      </div>
     </div>
   </div>
 </template>
@@ -92,12 +205,6 @@ export default {
 			highlightedType:''
 		};
 
-	},
-
-	mounted() {
-		this.currentSort=localStorage.getItem("ItemTypesColumnsSort")?localStorage.getItem("ItemTypesColumnsSort"):"name";
-		this.currentSortDir = localStorage.getItem("ItemTypesColumnsSortDir")?localStorage.getItem("ItemTypesColumnsSortDir"):"asc";
-		this.fetchData();
 	}, computed: {
 
 		sortedObjects() {
@@ -148,6 +255,12 @@ export default {
 			}
 			return this.sortedObjects;
 		}
+	},
+
+	mounted() {
+		this.currentSort=localStorage.getItem("ItemTypesColumnsSort")?localStorage.getItem("ItemTypesColumnsSort"):"name";
+		this.currentSortDir = localStorage.getItem("ItemTypesColumnsSortDir")?localStorage.getItem("ItemTypesColumnsSortDir"):"asc";
+		this.fetchData();
 	},
 	methods: {
 
@@ -211,9 +324,8 @@ export default {
 				   }
 			 }, 3000);
 		},
-		addItemType() {
-			/*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
-			this.errorMessage="";
+                addItemType() {
+                        this.errorMessage="";
 			this.newItemType.material["name"]=this.getMaterialName(this.newItemType.material.id);
 			axios.post('/itemTypes', this.newItemType).then(postResponse => {
                     let objectId = postResponse.data.id;

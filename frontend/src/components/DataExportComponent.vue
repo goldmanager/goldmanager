@@ -2,13 +2,36 @@
   <div class="main">
     <div class="content">
       <div><h1>Data Export</h1></div>
-      <div v-if="statusMessage">{{ statusMessage }}</div>
-      <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-      <div v-if="showExportStatus">{{ exportStatusMessage }}</div>
+      <div v-if="statusMessage">
+        {{ statusMessage }}
+      </div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div v-if="showExportStatus">
+        {{ exportStatusMessage }}
+      </div>
       <div>
-        <input v-model="exportPassword" type="password" placeholder="Export Password">
-        <input v-model="exportPasswordConfirm" type="password" placeholder="Export Password (Confirm)">
-        <button :class="getExportButtonClass" @click="exportData" :disabled="disableExport">Export</button>
+        <input
+          v-model="exportPassword"
+          type="password"
+          placeholder="Export Password"
+        >
+        <input
+          v-model="exportPasswordConfirm"
+          type="password"
+          placeholder="Export Password (Confirm)"
+        >
+        <button
+          :class="getExportButtonClass"
+          :disabled="disableExport"
+          @click="exportData"
+        >
+          Export
+        </button>
       </div>
     </div>
   </div>
@@ -36,6 +59,12 @@ export default {
     disableExport() {
       return this.exportStatus === 'RUNNING' || this.exportStarted;
     }
+  },
+  async mounted() {
+    await this.checkExportStatus();
+  },
+  beforeUnmount() {
+    this.clearStatusInterval();
   },
   methods: {
     async exportData() {
@@ -84,6 +113,7 @@ export default {
       } catch (error) {
         this.clearStatusInterval();
         this.showExportStatus = false;
+        this.setErrorMessage(error, 'Error checking export status.');
       }
     },
     async downloadExport() {
@@ -145,12 +175,6 @@ export default {
         this.errorMessage = defaultMessage;
       }
     }
-  },
-  async mounted() {
-    await this.checkExportStatus();
-  },
-  beforeUnmount() {
-    this.clearStatusInterval();
   }
 };
 </script>
