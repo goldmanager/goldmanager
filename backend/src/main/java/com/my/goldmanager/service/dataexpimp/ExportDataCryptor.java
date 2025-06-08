@@ -167,10 +167,16 @@ public class ExportDataCryptor {
                                 byte[] payloadSizeBytes = new byte[8];
                                 DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
 
-				long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
+                               long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
 
-                                byte[] payload = new byte[(int) payloadSize];
-                                DataExportImportUtil.readFully(cipherInputStream, payload);
+                               if (payloadSize <= 0 || payloadSize > maxEncryptedDataSize
+                                               || payloadSize > Integer.MAX_VALUE) {
+                                       throw new ValidationException(
+                                                       "Decrypted payload exceeds configured maximum size");
+                               }
+
+                               byte[] payload = new byte[(int) payloadSize];
+                               DataExportImportUtil.readFully(cipherInputStream, payload);
 
 				return objectMapper.readValue(payload, ExportData.class);
 
