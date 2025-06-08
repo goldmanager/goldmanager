@@ -57,15 +57,13 @@ import lombok.Setter;
  * Collects current material prices by using
  * https://api.metalpricecollector.com/ rest api
  */
-@ConditionalOnProperty(name = "metalpricecollector.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "metalpricecollector.enabled", havingValue = "true", matchIfMissing = false)
 @Component
 @Profile({ "default", "dev" })
 public class MetalPriceCollector {
 	private static final Logger logger = LoggerFactory.getLogger(MetalPriceCollector.class);
 	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
 	private AtomicBoolean isInitialized = new AtomicBoolean(false);
-
 
 	@Autowired
 	@Getter
@@ -77,7 +75,7 @@ public class MetalPriceCollector {
 	@Setter
 	private ObjectMapper objectMapper;
 
-	@Value("${metalpricecollector.apikey}")
+	@Value("${metalpricecollector.apikey}:#{null}")
 	@Getter
 	@Setter
 	private String apiKey;
@@ -134,13 +132,13 @@ public class MetalPriceCollector {
 		return result;
 	}
 
-	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 10)
+	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 1)
 	public void getCurrentPrices() {
 
 		if (isInitialized.get()) {
 			logger.debug("Updating prices");
 			Map<String, String> mappingSettings = getMetalMappings();
-			if (!mappingSettings.isEmpty() && apiKey != null) {
+			if (!mappingSettings.isEmpty() && apiKey != null && !apiKey.isBlank()) {
 				try (HttpClient httpClient = webClientBuilder.build()) {
 					List<Material> materials = materialService.list();
 
@@ -200,7 +198,8 @@ public class MetalPriceCollector {
 
 	public void init() {
 		Map<String, String> mappingSettings = getMetalMappings();
-		if (!mappingSettings.isEmpty() && apiKey != null && fetchHistoryDays > 0 && fetchHistoryDays <= 365) {
+		if (!mappingSettings.isEmpty() && apiKey != null && !apiKey.isBlank() && fetchHistoryDays > 0
+				&& fetchHistoryDays <= 365) {
 
 			try (HttpClient httpClient = webClientBuilder.build()) {
 
