@@ -18,7 +18,7 @@ Please see also https://github.com/goldmanager/goldmanager-dockercompose for an 
 
 ## Development setup
 
-The frontend is built and tested with Node.js 20. Install dependencies with `npm install` inside `frontend/` before running `npm run lint` or starting the dev server.
+The frontend is built and tested with Node.js 20. Install dependencies with `npm install` inside `frontend/` before running `npm run lint` and `npm run test` or starting the dev server.
 The backend requires Java 21 and can be tested with `./gradlew test` in the `backend/` directory.
 
 ## Data Import
