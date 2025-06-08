@@ -60,7 +60,6 @@ export default {
         console.error("logout request failed",error)
       }
       this.$store.dispatch('logout');
-      sessionStorage.removeItem('jwt-token');
       sessionStorage.removeItem('username');
       sessionStorage.removeItem('jwtRefresh');
       this.$router.push('/login');

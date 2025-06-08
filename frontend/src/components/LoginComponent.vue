@@ -70,9 +70,8 @@ export default {
           username: this.username,
           password: this.password
         });
-		sessionStorage.setItem('jwtRefresh',response.data.refreshAfter);
-        sessionStorage.setItem('jwt-token', response.data.token); 
-        sessionStorage.setItem('username', this.username); 
+        sessionStorage.setItem('jwtRefresh', response.data.refreshAfter);
+        sessionStorage.setItem('username', this.username);
         await this.$store.dispatch('login'); 
         this.$router.push('/'); 
       } catch (error) {
