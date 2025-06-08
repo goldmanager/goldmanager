@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import com.my.goldmanager.service.PasswordPolicyValidationService;
-import com.my.goldmanager.service.exception.ValidationException;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 @Service
 @Profile("default")
@@ -35,18 +35,19 @@ public class DefaultPasswordPolicyValidatorService implements PasswordPolicyVali
 	private final Pattern pattern = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&äöüÄÖÜß€§\"\\}\\{\\]\\[]).{8,}$");
 
 	@Override
-	public void validate(String password) throws ValidationException {
+	public void validate(String password) throws PasswordValidationException {
 		if (password == null || password.isBlank()) {
-			throw new ValidationException("Password cannot be null or blank.");
+			throw new PasswordValidationException("Password cannot be null or blank.");
 		}
 		String toValidate = password.trim();
-		if (!pattern.matcher(toValidate).matches()) {
-			throw new ValidationException("Password cannot exceed 100 characters.");
-		}
 		if (toValidate.length() > 100) {
-			throw new ValidationException(
+			throw new PasswordValidationException("Password cannot exceed 100 characters.");
+		}
+		if (!pattern.matcher(toValidate).matches()) {
+			throw new PasswordValidationException(
 					"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
 		}
+
 
 	}
 

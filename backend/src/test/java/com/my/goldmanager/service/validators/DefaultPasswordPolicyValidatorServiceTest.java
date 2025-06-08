@@ -19,26 +19,29 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.my.goldmanager.service.exception.ValidationException;
+import com.my.goldmanager.service.exception.PasswordValidationException;
 
 public class DefaultPasswordPolicyValidatorServiceTest {
 	public static class TestParameter {
 		private String password;
 		private boolean expectSuccess;
+		private String expectedMessage;
 
-		public TestParameter(String password, boolean expectSuccess) {
+		public TestParameter(String password, boolean expectSuccess, String expectedMessage) {
 			this.password = password;
 			this.expectSuccess = expectSuccess;
+			this.expectedMessage = expectedMessage;
+
 		}
 
 		@Override
 		public String toString() {
 			return "TestParameter [password=" + password + ", expectSuccess=" + expectSuccess + "]";
 		}
-		
 
 	}
 
@@ -48,19 +51,48 @@ public class DefaultPasswordPolicyValidatorServiceTest {
 		if (testParameter.expectSuccess) {
 			assertDoesNotThrow(() -> new DefaultPasswordPolicyValidatorService().validate(testParameter.password));
 		} else {
-			assertThrows(ValidationException.class,
-					() -> new DefaultPasswordPolicyValidatorService().validate(testParameter.password),
-					"Password must have a size between 8 and 100 characters and must contain of numbers, characters and at least one special character (e.g. \"@$!%*?&).");
+			PasswordValidationException ex = assertThrows(PasswordValidationException.class,
+					() -> new DefaultPasswordPolicyValidatorService().validate(testParameter.password));
+			Assertions.assertEquals(testParameter.expectedMessage, ex.getMessage());
 		}
 	}
 
 	static Stream<TestParameter> generateTestParameter() {
-		return Stream.of(new TestParameter(null, false), new TestParameter("", false), new TestParameter(" ", false), new TestParameter("a 1234567!", false),
+		return Stream.of(new TestParameter(null, false, "Password cannot be null or blank."),
+				new TestParameter("", false, "Password cannot be null or blank."),
+				new TestParameter(" ", false, "Password cannot be null or blank."),
+				new TestParameter("a 1234567!", false,
+						"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+				new TestParameter("aaa", false,
+						"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+				new TestParameter("aaaaaaaa", false,
+						"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+				new TestParameter(generateLongassword(101, "a"), false,
+						"Password cannot exceed 100 characters."),
 				new TestParameter(
 						"12345678901234567890123456789012345678901234567890123456789012345678!abcdEFGHIJKLMNOPQRST12345678901%",
-						false),
+						false, "Password cannot exceed 100 characters."),
 				new TestParameter(
 						"12345678901234567890123456789012345678901234567890123456789012345678!abcdEFGHIJKLMNOPQRST12345678901",
-						true),new TestParameter("ABCde12!",true),new TestParameter("ABCde2!",false),new TestParameter("ABCde112",false),new TestParameter("ghghUgz67\"",true),new TestParameter("ghghUgz67§",true),new TestParameter("ghghUgz67€",true),new TestParameter("ghghUgz67{}",true),new TestParameter("ghghUgz67[]",true),new TestParameter("ghghUgz67äöü",true));
+						true, null),
+				new TestParameter("ABCde12!", true, null),
+				new TestParameter("ABCde2!", false,
+						"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+				new TestParameter("ABCde112", false,
+						"Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+				new TestParameter("ghghUgz67\"", true, null),
+				new TestParameter("ghghUgz67§", true, null), new TestParameter("ghghUgz67€", true, null),
+				new TestParameter("ghghUgz67{}", true, null), new TestParameter("ghghUgz67[]", true, null),
+				new TestParameter("ghghUgz67äöü", true, null));
+	}
+
+	private static String generateLongassword(int length, String base) {
+
+		StringBuilder password = new StringBuilder(length);
+
+		while (password.length() < length) {
+			password.append(base);
+		}
+		return password.toString();
 	}
 }

@@ -14,6 +14,7 @@
  */
 package com.my.goldmanager.service;
 
+import com.my.goldmanager.service.exception.PasswordValidationException;
 import com.my.goldmanager.service.exception.ValidationException;
 
 /**
@@ -22,9 +23,12 @@ import com.my.goldmanager.service.exception.ValidationException;
 public interface PasswordPolicyValidationService {
 
 	/**
-	 * Validates that the given password is  valid according to implemented password validity and throws {@link ValidationException} containing the violated policy terms.
+	 * Validates that the given password is valid according to implemented password
+	 * validity and throws {@link ValidationException} containing the violated
+	 * policy terms.
+	 * 
 	 * @param password
-	 * @throws ValidationException
+	 * @throws PasswordValidationException
 	 */
-	void validate(String password) throws ValidationException;
+	void validate(String password) throws PasswordValidationException;
 }
