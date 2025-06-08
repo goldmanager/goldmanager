@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:20 as build-frontend
 
 WORKDIR /app
@@ -23,7 +24,14 @@ COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/sta
 
 RUN gradle clean bootJar cyclonedxBom -PskipTests
 
-FROM eclipse-temurin:21-jre-alpine
+FROM cgr.dev/chainguard/syft:latest as generate-sbom
+WORKDIR /work
+COPY --from=build-backend /home/gradle/project/build/libs/*.jar ./app.jar
+COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json ./application.cdx.json
+COPY --from=build-frontend /app/bom-frontend.cdx.json ./bom-frontend.cdx.json
+RUN syft dir:. -o cyclonedx-json > image.cdx.json
+
+FROM eclipse-temurin:21-jre-alpine as runtime
 
 WORKDIR /opt/goldmanager
 
@@ -31,6 +39,9 @@ COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager
 
 COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json /bom/application.cdx.json
 COPY --from=build-frontend /app/bom-frontend.cdx.json /bom/frontend.cdx.json
+
+FROM runtime
+COPY --from=generate-sbom /work/image.cdx.json /bom/image.cdx.json
 
 EXPOSE 8080
 EXPOSE 8443

@@ -37,10 +37,10 @@ This repository contains two sub-projects:
      and copy the frontend build into `src/main/resources/static`. The resulting
      backend SBOM is placed under `build/reports/application.cdx.json`.
   3. Final stage runs the generated JAR with Temurin JRE (port 8080/8443) and
-     includes both SBOM files under `/bom`.
-* Build with:
+     includes the backend, frontend and a combined image SBOM under `/bom`.
+* Build with BuildKit enabled to create SBOM and provenance attestations:
   ```bash
-  docker build -t goldmanager .
+  DOCKER_BUILDKIT=1 docker build --sbom=goldmanager.sbom.json --provenance=mode=max -t goldmanager .
   ```
 
 ## Development Database
