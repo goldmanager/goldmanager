@@ -1,19 +1,43 @@
 <template>
   <nav v-if="isAuthenticated">
-    <router-link to="/">Prices</router-link>
-	<router-link to="/priceHistory">Price History</router-link>
-    <router-link to="/items">Items</router-link>
-    <router-link to="/itemTypes">ItemTypes</router-link>
-	<router-link to="/itemStorages">Item Storages</router-link>
-    <router-link to="/metals">Metals</router-link>
-    <router-link to="/units">Units</router-link>
-    <router-link to="/users">Users</router-link>
-    <router-link to="/dataexport">Data Export</router-link>
-    <router-link to="/dataimport">Data Import</router-link>
-    <button @click="logout">Logout</button>
+    <router-link to="/">
+      Prices
+    </router-link>
+    <router-link to="/priceHistory">
+      Price History
+    </router-link>
+    <router-link to="/items">
+      Items
+    </router-link>
+    <router-link to="/itemTypes">
+      ItemTypes
+    </router-link>
+    <router-link to="/itemStorages">
+      Item Storages
+    </router-link>
+    <router-link to="/metals">
+      Metals
+    </router-link>
+    <router-link to="/units">
+      Units
+    </router-link>
+    <router-link to="/users">
+      Users
+    </router-link>
+    <router-link to="/dataexport">
+      Data Export
+    </router-link>
+    <router-link to="/dataimport">
+      Data Import
+    </router-link>
+    <button @click="logout">
+      Logout
+    </button>
   </nav>
   <nav v-else>
-    <router-link to="/login">Login</router-link>
+    <router-link to="/login">
+      Login
+    </router-link>
   </nav>
 </template>
 

@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <NavBar /> <!-- Add the navigation menu -->
-    <router-view></router-view> <!-- Displays the content of the current route -->
+    <router-view /> <!-- Displays the content of the current route -->
   </div>
 </template>
 
