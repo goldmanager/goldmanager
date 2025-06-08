@@ -1,141 +1,266 @@
 <template>
   <div class="main">
     <div class="content">
-    <div><h1>Prices</h1></div>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-    <div v-if="currentViewType==='PriceList'">
-		<div><input v-model="searchQueryPriceList" type="text" placeholder="Search by item name"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>Total Price</th>
-          <th>Filter by</th>
-          <th>Switch View Type</th>
-        </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td>{{ formatPrice(priceList.totalPrice) }}</td>
-        <td>
-        <select id="filters" v-model="currentFilter" @change="setCurrentFilter($event)" >
-          <option value="">None</option>
-          <option v-for="filter in filters"  :key="filter.id" :value="filter.type+':'+filter.id">{{ filter.typeName+ ": " + filter.name }}</option>
-        </select>
-        </td>
-        <td>
-        <select id="viewtype" v-model="currentViewType" @change="setCurrentViewType($event)" >
-          <option v-for="viewType in viewTypes" :key="viewType.id" :value="viewType.id">{{ viewType.label }}</option>
-        </select>
-        </td>
-      </tr>
-      </tbody>
-      </table>
-      <div  v-if="priceList.prices.length >0">
-      <table>
-        <thead>
-          <tr>
-            <th @click="sortPriceListBy('name')">Name <span v-if="currentPriceListSort === 'name'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('amount')">Weight <span v-if="currentPriceListSort === 'amount'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('unit')">Unit <span v-if="currentPriceListSort === 'unit'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('itemCount')">Number of Items <span v-if="currentPriceListSort === 'itemCount'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('price')">Unit Price <span v-if="currentPriceListSort === 'price'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('priceTotal')">Total Price <span v-if="currentPriceListSort === 'priceTotal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-            <th @click="sortPriceListBy('metal')">Metal <span v-if="currentPriceListSort === 'metal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-			<th @click="sortPriceListBy('itemStorage')">Item Storage <span v-if="currentPriceListSort === 'itemStorage'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <tr v-for="price in paginatedPriceList.prices" :key="price.item.id">
-            <td>{{ price.item.name }}</td>
-            <td>{{ price.item.amount }}</td>
-            <td>{{ price.item.unit.name }}</td>
-            <td>{{ price.item.itemCount }}</td>
-            <td>{{ formatPrice(price.price) }}</td>
-            <td>{{ formatPrice(price.priceTotal) }}</td>
-            <td>{{ price.item.itemType.material.name }}</td>
-			<td>{{ price.item.itemStorage?price.item.itemStorage.name:'' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="pagination" v-if="totalPriceListPages > 0">
-		<button :class="currentPriceListPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPriceListPage" :disabled="currentPriceListPage === 1">Previous</button>
-		<span>Page {{ currentPriceListPage }} of {{ totalPriceListPages }}</span>
-		<button  :class="currentPriceListPage === totalPriceListPages?'pagingButton_disabled':'pagingButton'" @click="nextPriceListPage" :disabled="currentPriceListPage === totalPriceListPages">Next</button>
-		<span>(Items per page: {{priceListPageSize}})</span>		 
-	</div>
-    </div>
-	</div>
-   <div v-else >
-	<div><input v-model="groupsSearchQuery" type="text" placeholder="Search by group name"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>Switch View Type</th>
-        </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td>
-        <select id="viewtype" v-model="currentViewType" @change="setCurrentViewType($event)" >
-          <option v-for="viewType in viewTypes" :key="viewType.id" :value="viewType.id">{{ viewType.label }}</option>
-        </select>
-        </td>
-      </tr>
-      </tbody>
-      </table>
+      <div><h1>Prices</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div v-if="currentViewType==='PriceList'">
+        <div>
+          <input
+            v-model="searchQueryPriceList"
+            type="text"
+            placeholder="Search by item name"
+          >
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Total Price</th>
+              <th>Filter by</th>
+              <th>Switch View Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ formatPrice(priceList.totalPrice) }}</td>
+              <td>
+                <select
+                  id="filters"
+                  v-model="currentFilter"
+                  @change="setCurrentFilter($event)"
+                >
+                  <option value="">
+                    None
+                  </option>
+                  <option
+                    v-for="filter in filters"
+                    :key="filter.id"
+                    :value="filter.type+':'+filter.id"
+                  >
+                    {{ filter.typeName+ ": " + filter.name }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <select
+                  id="viewtype"
+                  v-model="currentViewType"
+                  @change="setCurrentViewType($event)"
+                >
+                  <option
+                    v-for="viewType in viewTypes"
+                    :key="viewType.id"
+                    :value="viewType.id"
+                  >
+                    {{ viewType.label }}
+                  </option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="priceList.prices.length >0">
+          <table>
+            <thead>
+              <tr>
+                <th @click="sortPriceListBy('name')">
+                  Name <span v-if="currentPriceListSort === 'name'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('amount')">
+                  Weight <span v-if="currentPriceListSort === 'amount'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('unit')">
+                  Unit <span v-if="currentPriceListSort === 'unit'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('itemCount')">
+                  Number of Items <span v-if="currentPriceListSort === 'itemCount'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('price')">
+                  Unit Price <span v-if="currentPriceListSort === 'price'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('priceTotal')">
+                  Total Price <span v-if="currentPriceListSort === 'priceTotal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('metal')">
+                  Metal <span v-if="currentPriceListSort === 'metal'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortPriceListBy('itemStorage')">
+                  Item Storage <span v-if="currentPriceListSort === 'itemStorage'">{{ currentPriceListSortDir === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="price in paginatedPriceList.prices"
+                :key="price.item.id"
+              >
+                <td>{{ price.item.name }}</td>
+                <td>{{ price.item.amount }}</td>
+                <td>{{ price.item.unit.name }}</td>
+                <td>{{ price.item.itemCount }}</td>
+                <td>{{ formatPrice(price.price) }}</td>
+                <td>{{ formatPrice(price.priceTotal) }}</td>
+                <td>{{ price.item.itemType.material.name }}</td>
+                <td>{{ price.item.itemStorage?price.item.itemStorage.name:'' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            v-if="totalPriceListPages > 0"
+            class="pagination"
+          >
+            <button
+              :class="currentPriceListPage === 1 ?'pagingButton_disabled':'pagingButton'"
+              :disabled="currentPriceListPage === 1"
+              @click="prevPriceListPage"
+            >
+              Previous
+            </button>
+            <span>Page {{ currentPriceListPage }} of {{ totalPriceListPages }}</span>
+            <button
+              :class="currentPriceListPage === totalPriceListPages?'pagingButton_disabled':'pagingButton'"
+              :disabled="currentPriceListPage === totalPriceListPages"
+              @click="nextPriceListPage"
+            >
+              Next
+            </button>
+            <span>(Items per page: {{ priceListPageSize }})</span>		 
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <div>
+          <input
+            v-model="groupsSearchQuery"
+            type="text"
+            placeholder="Search by group name"
+          >
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Switch View Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <select
+                  id="viewtype"
+                  v-model="currentViewType"
+                  @change="setCurrentViewType($event)"
+                >
+                  <option
+                    v-for="viewType in viewTypes"
+                    :key="viewType.id"
+                    :value="viewType.id"
+                  >
+                    {{ viewType.label }}
+                  </option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 	  
-      <div v-for="priceGroup in paginatedGroups" :key="priceGroup.groupName">
-		<H2>{{ priceGroup.groupName }}</H2>
-		<table>
-			<thead>
-				<tr>
-					<th>Total Price</th>
-					<th>Total Weight</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>{{ formatPrice(priceGroup.totalPrice) }}</td>
-					<td>{{ formatPrice(priceGroup.amount) }} Oz</td>
-				</tr>
-			</tbody>
-		</table>
-		<div  v-if="priceGroup.prices.length >0"><input v-model="groupsListQuerys[priceGroup.groupName]" type="text" placeholder="Search by item name"></div>
-        <table v-if="priceGroup.prices.length >0">
-			<thead>
-				<tr>
-					<th @click="sortGroupPricesBy('name',priceGroup.groupName)">Name <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'name'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('amount',priceGroup.groupName)">Weight <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'amount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('unit',priceGroup.groupName)">Unit <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'unit'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('itemCount',priceGroup.groupName)">Number of Items <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemCount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('price',priceGroup.groupName)">Unit Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'price'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('priceTotal',priceGroup.groupName)">Total Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'priceTotal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('metal',priceGroup.groupName)">Metal  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'metal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortGroupPricesBy('itemStorage',priceGroup.groupName)">Item Storage  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemStorage'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span></th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="price in filteredGroupPrices(priceGroup.groupName)" :key="price.item.id">
-					<td>{{ price.item.name }}</td>
-					<td>{{ price.item.amount }}</td>
-					<td>{{ price.item.unit.name }}</td>
-					<td>{{ price.item.itemCount }}</td>
-					<td>{{ formatPrice(price.price) }}</td>
-					<td>{{ formatPrice(price.priceTotal) }}</td>
-					<td>{{ price.item.itemType.material.name }}</td>
-					<td>{{ price.item.itemStorage ? price.item.itemStorage.name : '' }}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-	<div class="pagination" v-if="totalGroupPages > 0">
-		<button :class="currentGroupPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevGroupPage" :disabled="currentGroupPage === 1">Previous</button>
-		<span>Page {{ currentGroupPage }} of {{ totalGroupPages }}</span>
-		<button  :class="currentGroupPage === totalGroupPages?'pagingButton_disabled':'pagingButton'" @click="nextGroupPage" :disabled="currentGroupPage === totalGroupPages">Next</button>
-		<span>(Price groups per page: {{groupsPageSize}})</span>		 
-	</div>
-   </div>
+        <div
+          v-for="priceGroup in paginatedGroups"
+          :key="priceGroup.groupName"
+        >
+          <H2>{{ priceGroup.groupName }}</H2>
+          <table>
+            <thead>
+              <tr>
+                <th>Total Price</th>
+                <th>Total Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ formatPrice(priceGroup.totalPrice) }}</td>
+                <td>{{ formatPrice(priceGroup.amount) }} Oz</td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="priceGroup.prices.length >0">
+            <input
+              v-model="groupsListQuerys[priceGroup.groupName]"
+              type="text"
+              placeholder="Search by item name"
+            >
+          </div>
+          <table v-if="priceGroup.prices.length >0">
+            <thead>
+              <tr>
+                <th @click="sortGroupPricesBy('name',priceGroup.groupName)">
+                  Name <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'name'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('amount',priceGroup.groupName)">
+                  Weight <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'amount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('unit',priceGroup.groupName)">
+                  Unit <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'unit'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('itemCount',priceGroup.groupName)">
+                  Number of Items <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemCount'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('price',priceGroup.groupName)">
+                  Unit Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'price'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('priceTotal',priceGroup.groupName)">
+                  Total Price <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'priceTotal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('metal',priceGroup.groupName)">
+                  Metal  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'metal'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+                <th @click="sortGroupPricesBy('itemStorage',priceGroup.groupName)">
+                  Item Storage  <span v-if="getGroupPricesSortForGroup(priceGroup.groupName) === 'itemStorage'">{{ getGroupPricesSortDirForGroup(priceGroup.groupName) === 'asc' ? '▲' : '▼' }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="price in filteredGroupPrices(priceGroup.groupName)"
+                :key="price.item.id"
+              >
+                <td>{{ price.item.name }}</td>
+                <td>{{ price.item.amount }}</td>
+                <td>{{ price.item.unit.name }}</td>
+                <td>{{ price.item.itemCount }}</td>
+                <td>{{ formatPrice(price.price) }}</td>
+                <td>{{ formatPrice(price.priceTotal) }}</td>
+                <td>{{ price.item.itemType.material.name }}</td>
+                <td>{{ price.item.itemStorage ? price.item.itemStorage.name : '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          v-if="totalGroupPages > 0"
+          class="pagination"
+        >
+          <button
+            :class="currentGroupPage === 1 ?'pagingButton_disabled':'pagingButton'"
+            :disabled="currentGroupPage === 1"
+            @click="prevGroupPage"
+          >
+            Previous
+          </button>
+          <span>Page {{ currentGroupPage }} of {{ totalGroupPages }}</span>
+          <button
+            :class="currentGroupPage === totalGroupPages?'pagingButton_disabled':'pagingButton'"
+            :disabled="currentGroupPage === totalGroupPages"
+            @click="nextGroupPage"
+          >
+            Next
+          </button>
+          <span>(Price groups per page: {{ groupsPageSize }})</span>		 
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -180,15 +305,6 @@ export default {
 
 	  
     };
-
-  },
-
-  mounted() {
-    this.currentFilter=this.getCurrentFilter();
-    this.currentViewType=this.getCurrentViewType();
-	this.currentPriceListSort=localStorage.getItem("PriceListColumnsSort")?localStorage.getItem("PriceListColumnsSort"):"name";
-	this.currentPriceListSortDir = localStorage.getItem("PriceListColumnsSortDir")?localStorage.getItem("PriceListColumnsSortDir"):"asc";
-    this.fetchData();
 
   },
   computed: {
@@ -289,6 +405,15 @@ export default {
 		return this.currentPricePageNumber;
 	},
 },
+
+  mounted() {
+    this.currentFilter=this.getCurrentFilter();
+    this.currentViewType=this.getCurrentViewType();
+	this.currentPriceListSort=localStorage.getItem("PriceListColumnsSort")?localStorage.getItem("PriceListColumnsSort"):"name";
+	this.currentPriceListSortDir = localStorage.getItem("PriceListColumnsSortDir")?localStorage.getItem("PriceListColumnsSortDir"):"asc";
+    this.fetchData();
+
+  },
   methods: {
 	findPricesGroupforPriceGroupName(priceGroupName){
 		if(priceGroupName != null && priceGroupName !=''){

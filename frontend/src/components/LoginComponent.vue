@@ -5,11 +5,31 @@
         <template v-if="!showImportStatus">
           <h1>Login</h1>
           <form @submit.prevent="handleLogin">
-            <input v-model="username" type="text" placeholder="Username" required />
-            <input v-model="password" type="password" placeholder="Password" required />
-            <button class="loginbutton" type="submit">Login</button>
+            <input
+              v-model="username"
+              type="text"
+              placeholder="Username"
+              required
+            >
+            <input
+              v-model="password"
+              type="password"
+              placeholder="Password"
+              required
+            >
+            <button
+              class="loginbutton"
+              type="submit"
+            >
+              Login
+            </button>
           </form>
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+          <p
+            v-if="errorMessage"
+            class="error"
+          >
+            {{ errorMessage }}
+          </p>
         </template>
         <template v-else>
           <h1>Import Status</h1>
@@ -35,6 +55,12 @@ export default {
       showImportStatus: false,
       statusIntervalId: null
     };
+  },
+  async mounted() {
+    await this.checkImportStatus();
+  },
+  beforeUnmount() {
+    this.clearStatusInterval();
   },
   methods: {
     ...mapActions(['login']), // Mappe die Vuex-Action zum `login`
@@ -94,18 +120,12 @@ export default {
           this.importStatusMessage = response.data.message || '';
         }
       } catch (error) {
+        console.error('Error checking import status', error);
         this.clearStatusInterval();
         this.showImportStatus = false;
       }
     }
 
-  },
-  async mounted() {
-    await this.checkImportStatus();
-  }
-  ,
-  beforeUnmount() {
-    this.clearStatusInterval();
   }
 };
 </script>

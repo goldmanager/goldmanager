@@ -1,6 +1,10 @@
 <template>
   <div class="chart-container">
-    <line-chart v-if="chartData" :data="chartData" :options="chartOptions"></line-chart>
+    <line-chart
+      v-if="chartData"
+      :data="chartData"
+      :options="chartOptions"
+    />
   </div>
 </template>
 

@@ -1,105 +1,276 @@
 <template>
   <div class="main">
     <div class="content">
-    <div><h1>Items</h1></div>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-	<div><input v-model="searchQuery" type="text" placeholder="Search by Item name"></div>
-    <table >
-      <thead>
-        <tr>
-          <th @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
-		 </th>
-          <th @click="sortBy('itemType')">Type <span v-if="currentSort === 'itemType'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th @click="sortBy('amount')">Weight <span v-if="currentSort === 'amount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th @click="sortBy('unit')">Unit <span v-if="currentSort === 'unit'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th @click="sortBy('itemCount')">Number of Items <span v-if="currentSort === 'itemCount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-		  <th @click="sortBy('itemStorage')">Item Storage <span v-if="currentSort === 'itemStorage'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr  v-if="!editedObject">
-          <td><input v-model="newItem.name" type="text" placeholder="Name" required="true"></td>
+      <div><h1>Items</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by Item name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('name')">
+              Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('itemType')">
+              Type <span v-if="currentSort === 'itemType'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('amount')">
+              Weight <span v-if="currentSort === 'amount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('unit')">
+              Unit <span v-if="currentSort === 'unit'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('itemCount')">
+              Number of Items <span v-if="currentSort === 'itemCount'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('itemStorage')">
+              Item Storage <span v-if="currentSort === 'itemStorage'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="!editedObject">
+            <td>
+              <input
+                v-model="newItem.name"
+                type="text"
+                placeholder="Name"
+                required="true"
+              >
+            </td>
 
-          <td>
-            <select id="optionsItemType" v-model="newItem.itemType.id">
-              <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
-            </select>
-          </td>
-           <td><input v-model.number="newItem.amount" type="number" placeholder="Weight"></td>
-          <td>
-            <select id="optionsUnit" v-model="newItem.unit.name">
-              <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
-            </select>
-          </td>
-           <td><input v-model.number="newItem.itemCount" type="integer" placeholder="Number of items"></td>
-		   <td>
-			<select id="optionsStorage" v-model="newItem.itemStorage.id">
-				<option key='' value=''>None</option> 
-				<option v-for="storage in itemStorages" :key="storage.value" :value="storage.value">{{ storage.text }}</option>
-			 </select>
-		   </td>
-          <td>
-            <button class="actionbutton" @click="addItem()">Add New</button>
-          </td>
+            <td>
+              <select
+                id="optionsItemType"
+                v-model="newItem.itemType.id"
+              >
+                <option
+                  v-for="itemType in itemTypes"
+                  :key="itemType.value"
+                  :value="itemType.value"
+                >
+                  {{ itemType.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <input
+                v-model.number="newItem.amount"
+                type="number"
+                placeholder="Weight"
+              >
+            </td>
+            <td>
+              <select
+                id="optionsUnit"
+                v-model="newItem.unit.name"
+              >
+                <option
+                  v-for="unit in units"
+                  :key="unit.value"
+                  :value="unit.value"
+                >
+                  {{ unit.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <input
+                v-model.number="newItem.itemCount"
+                type="integer"
+                placeholder="Number of items"
+              >
+            </td>
+            <td>
+              <select
+                id="optionsStorage"
+                v-model="newItem.itemStorage.id"
+              >
+                <option
+                  key=""
+                  value=""
+                >
+                  None
+                </option> 
+                <option
+                  v-for="storage in itemStorages"
+                  :key="storage.value"
+                  :value="storage.value"
+                >
+                  {{ storage.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addItem()"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr v-if="editedObject">
+            <td>
+              <input
+                v-model="editedObject.name"
+                type="text"
+                placeholder="Name"
+                required="true"
+              >
+            </td>
 
-        </tr>
-		<tr  v-if="editedObject">
-		      <td><input v-model="editedObject.name" type="text" placeholder="Name" required="true"></td>
+            <td>
+              <select
+                id="optionsItemType"
+                v-model="editedObject.itemType.id"
+              >
+                <option
+                  v-for="itemType in itemTypes"
+                  :key="itemType.value"
+                  :value="itemType.value"
+                >
+                  {{ itemType.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <input
+                v-model.number="editedObject.amount"
+                type="number"
+                placeholder="Weight"
+              >
+            </td>
+            <td>
+              <select
+                id="optionsUnit"
+                v-model="editedObject.unit.name"
+              >
+                <option
+                  v-for="unit in units"
+                  :key="unit.value"
+                  :value="unit.value"
+                >
+                  {{ unit.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <input
+                v-model.number="editedObject.itemCount"
+                type="integer"
+                placeholder="Number of items"
+              >
+            </td>
+            <td>
+              <select
+                id="optionsStorage"
+                v-model="editedObject.itemStorage.id"
+              >
+                <option
+                  key=""
+                  value=""
+                >
+                  None
+                </option> 
+                <option
+                  v-for="storage in itemStorages"
+                  :key="storage.value"
+                  :value="storage.value"
+                >
+                  {{ storage.text }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updateObject()"
+              >
+                Save
+              </button>
+              <button
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="item in paginatedObjects"
+            :key="item.id"
+            :class="getHighlightClass(item.id)"
+          >
+            <td>{{ item.name }}</td>
+            <td>
+              {{ item.itemType.name }}
+            </td>
+            <td>{{ item.amount }}</td>
+            <td>
+              {{ item.unit.name }}          
+            </td>
+            <td>{{ item.itemCount }}</td>
+            <td>{{ item.itemStorage && item.itemStorage.name ? item.itemStorage.name: '' }}</td>
+            <td>
+              <button
+                v-if="editedObject == null"
+                class="actionbutton"
+                @click="editObject(item)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="editedObject != null && editedObject.id === item.id"
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+              <button
+                v-if="editedObject == null"
+                class="actionbutton"
+                @click="deleteObject(item.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-		      <td>
-		        <select id="optionsItemType" v-model="editedObject.itemType.id">
-		          <option v-for="itemType in itemTypes" :key="itemType.value" :value="itemType.value">{{ itemType.text }}</option>
-		        </select>
-		      </td>
-		       <td><input v-model.number="editedObject.amount" type="number" placeholder="Weight"></td>
-		      <td>
-		        <select id="optionsUnit" v-model="editedObject.unit.name">
-		          <option v-for="unit in units" :key="unit.value" :value="unit.value">{{ unit.text }}</option>
-		        </select>
-		      </td>
-		       <td><input v-model.number="editedObject.itemCount" type="integer" placeholder="Number of items"></td>
-			   <td>
-				<select id="optionsStorage" v-model="editedObject.itemStorage.id">
-					<option key='' value=''>None</option> 
-					<option v-for="storage in itemStorages" :key="storage.value" :value="storage.value">{{ storage.text }}</option>
-				</select>
-				</td>
-		      <td>
-		       <button class="actionbutton"  @click="updateObject()">Save</button>
-			   <button class="actionbutton"  @click="cancelEdit">Cancel</button>
-		      </td>
-
-		    </tr>
-        <tr :class="getHighlightClass(item.id)" v-for="item in paginatedObjects" :key="item.id">
-          <td>{{item.name}}</td>
-          <td>
-            {{item.itemType.name}}
-          </td>
-           <td>{{item.amount}}</td>
-          <td>
-           {{ item.unit.name }}          
-          </td>
-          <td>{{item.itemCount}}</td>
-		  <td>{{ item.itemStorage && item.itemStorage.name ? item.itemStorage.name: '' }}</td>
-          <td>
-			<button class="actionbutton" v-if="editedObject == null"  @click="editObject(item)">Edit</button>
-			<button class="actionbutton" v-if="editedObject != null && editedObject.id === item.id"  @click="cancelEdit">Cancel</button>
-            <button class="actionbutton"  v-if="editedObject == null"  @click="deleteObject(item.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-	<div class="pagination" v-if="totalPages > 0">
-	
-	  <button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-	  <span>Page {{ currentPage }} of {{ totalPages }}</span>
-	  <button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-	  <span>(Items per page: {{pageSize}})</span>
-	 
-	</div>
-
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>
+      </div>
     </div>
   </div>
 </template>
@@ -145,14 +316,6 @@ export default {
 	  
     };
 
-  },
-
-  mounted() {
-	this.currentSort=localStorage.getItem("ItemsColumnsSort")?localStorage.getItem("ItemsColumnsSort"):"name";
-	this.currentSortDir = localStorage.getItem("ItemsColumnsSortDir")?localStorage.getItem("ItemsColumnsSortDir"):"asc";
-	
-    this.fetchData();
-	
   },
   computed: {
 	
@@ -211,6 +374,14 @@ export default {
 		}
 		return this.sortedObjects;
 	}
+  },
+
+  mounted() {
+	this.currentSort=localStorage.getItem("ItemsColumnsSort")?localStorage.getItem("ItemsColumnsSort"):"name";
+	this.currentSortDir = localStorage.getItem("ItemsColumnsSortDir")?localStorage.getItem("ItemsColumnsSortDir"):"asc";
+	
+    this.fetchData();
+	
   },
   methods: {
 	getItemStorageName(itemStorageId){
