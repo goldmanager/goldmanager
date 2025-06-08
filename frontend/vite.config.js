@@ -10,6 +10,21 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('element-plus')) {
+              return 'element-plus';
+            }
+            if (id.includes('chart.js') || id.includes('vue-chartjs')) {
+              return 'charts';
+            }
+            return 'vendor';
+          }
+        }
+      }
+    }
   }
 })
