@@ -29,7 +29,7 @@ WORKDIR /work
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar ./app.jar
 COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json ./application.cdx.json
 COPY --from=build-frontend /app/bom-frontend.cdx.json ./bom-frontend.cdx.json
-RUN syft dir:. -o cyclonedx-json > image.cdx.json
+RUN ["syft", "dir:.", "-o", "cyclonedx-json=image.cdx.json"]
 
 FROM eclipse-temurin:21-jre-alpine as runtime
 
