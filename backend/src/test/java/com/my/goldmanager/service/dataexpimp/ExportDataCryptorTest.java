@@ -190,7 +190,7 @@ class ExportDataCryptorTest {
         @Test
         void testDecrypt_TooLargeEncryptedDataSize() throws Exception {
                 String encryptionPassword = "validPassword";
-                byte[] invalidData = createDataWithLargeEncryptedSize(ExportDataCryptor.MAX_ENCRYPTED_DATA_SIZE + 1);
+                byte[] invalidData = createDataWithLargeEncryptedSize(exportDataCryptor.getMaxEncryptedDataSize() + 1);
 
                 Exception exception = assertThrows(ValidationException.class,
                                 () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
@@ -203,7 +203,7 @@ class ExportDataCryptorTest {
                String encryptionPassword = "validPassword";
 
                byte[] invalidData = createDataWithLargePayloadSize(encryptionPassword,
-                               ExportDataCryptor.MAX_ENCRYPTED_DATA_SIZE + 1);
+                               exportDataCryptor.getMaxEncryptedDataSize() + 1);
 
                Exception exception = assertThrows(ValidationException.class,
                                () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
