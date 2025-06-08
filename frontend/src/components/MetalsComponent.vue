@@ -73,7 +73,7 @@ export default {
 	data() {
 		return {
 			metals: [],
-			newMaterial: { // Datenmodell für ein neues Material
+                        newMaterial: { // Data model for a new material
 				name: '',
 				price: 0,
 				entryDate: this.formatDateCustom(new Date())

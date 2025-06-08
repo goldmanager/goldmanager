@@ -24,7 +24,7 @@ import axios from '../axios';
 export default {
   name: 'NavBar',
   computed: {
-    ...mapGetters(['isAuthenticated']) // Binde den Getter für den Authentifizierungsstatus
+    ...mapGetters(['isAuthenticated']) // Bind the getter for the authentication status
   },
   methods: {
      ...mapActions(['logout']),

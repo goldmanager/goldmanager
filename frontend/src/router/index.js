@@ -10,7 +10,7 @@ import ItemStorages from '../components/ItemStorages.vue';
 import PriceHistory from '../components/PriceHistoryComponent.vue'
 import DataExport from '../components/DataExportComponent.vue';
 import DataImport from '../components/DataImportComponent.vue';
-// Erstelle den Router
+// Create the router
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -25,23 +25,23 @@ const router = createRouter({
         { path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}},
     { path: '/dataexport', component: DataExport, meta: { requiresAuth: true } },
     { path: '/dataimport', component: DataImport, meta: { requiresAuth: true } }
-    // Weitere Routen hinzufügen
+    // Add additional routes here
   ]
 });
 
-// Router-Guard zur Überprüfung des Authentifizierungsstatus
+// Router guard to check the authentication status
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!sessionStorage.getItem('jwt-token'); // Prüfe, ob der Benutzer authentifiziert ist
+  const isAuthenticated = !!sessionStorage.getItem('jwt-token'); // Check whether the user is authenticated
 
-  // Wenn die Route ein Authentifizierungserfordernis hat
+  // If the route requires authentication
   if (to.meta.requiresAuth) {
     if (isAuthenticated) {
-      next(); // Benutzer ist authentifiziert, fahre fort zur Route
+      next(); // User is authenticated, proceed to the route
     } else {
-      next('/login'); // Benutzer ist nicht authentifiziert, leite zur Login-Seite weiter
+      next('/login'); // User is not authenticated, redirect to the login page
     }
   } else {
-    next(); // Keine Authentifizierung erforderlich, fahre fort zur Route
+    next(); // No authentication required, continue to the route
   }
 });
 
