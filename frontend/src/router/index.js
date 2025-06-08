@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Prices from '../components/PricesComponent.vue';
-import UserLogin from '../components/LoginComponent.vue';
-import Metals from '../components/MetalsComponent.vue';
-import Units from '../components/UnitsComponent.vue';
-import ItemTypes from '../components/ItemTypes.vue';
-import Items from '../components/ItemsComponent.vue';
-import Users from '../components/UsersComponent.vue';
-import ItemStorages from '../components/ItemStorages.vue';
-import PriceHistory from '../components/PriceHistoryComponent.vue'
-import DataExport from '../components/DataExportComponent.vue';
-import DataImport from '../components/DataImportComponent.vue';
+const Prices = () => import('../components/PricesComponent.vue');
+const UserLogin = () => import('../components/LoginComponent.vue');
+const Metals = () => import('../components/MetalsComponent.vue');
+const Units = () => import('../components/UnitsComponent.vue');
+const ItemTypes = () => import('../components/ItemTypes.vue');
+const Items = () => import('../components/ItemsComponent.vue');
+const Users = () => import('../components/UsersComponent.vue');
+const ItemStorages = () => import('../components/ItemStorages.vue');
+const PriceHistory = () => import('../components/PriceHistoryComponent.vue');
+const DataExport = () => import('../components/DataExportComponent.vue');
+const DataImport = () => import('../components/DataImportComponent.vue');
 // Create the router
 const router = createRouter({
   history: createWebHistory(),

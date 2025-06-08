@@ -84,11 +84,14 @@
 /*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
 import axios from '../axios';
 import PriceChart from './PriceChart.vue';
+import { ElDatePicker } from 'element-plus';
+import 'element-plus/es/components/date-picker/style/css';
 export default {
   name: 'PricesComponent',
   components: {
-        PriceChart,
-      },
+    PriceChart,
+    ElDatePicker,
+  },
   data() {
     return {
 		errorMessage:null,

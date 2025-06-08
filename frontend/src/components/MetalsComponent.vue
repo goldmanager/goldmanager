@@ -162,9 +162,14 @@
 
 <script>
 import axios from '../axios';
+import { ElDatePicker } from 'element-plus';
+import 'element-plus/es/components/date-picker/style/css';
 
 export default {
   name: 'MetalsComponent',
+  components: {
+    ElDatePicker,
+  },
 	data() {
 		return {
 			metals: [],
