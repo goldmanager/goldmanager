@@ -46,10 +46,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Install and Build Frontend
+    - name: Install and Test Frontend
       run: |
         cd frontend
         npm install
+        npm run lint
+        npm run test -- --run
         npm run build
 
     - name: Copy Frontend Build to Backend

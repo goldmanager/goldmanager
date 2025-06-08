@@ -13,5 +13,7 @@ This project uses several open source dependencies. The following table lists ke
 | Byte Buddy | Apache-2.0 |
 | Mockito | MIT |
 | Vue, Vite and related frontend packages | MIT |
+| Vitest | MIT |
+| Vue Test Utils | MIT |
 
 All listed licenses are permissive or weak copyleft and are compatible with use under the Apache License 2.0. For LGPL and MPL/EPL components, ensure they remain separate libraries when distributing the application and keep the original license notices intact.

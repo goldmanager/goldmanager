@@ -64,6 +64,7 @@ When backend functions are added or changed, corresponding unit or integration t
 
 1. `./gradlew test` inside `backend/`
 2. `npm run lint` inside `frontend/`
+3. `npm run test` inside `frontend/`
 
 Include any relevant outputs in the PR description.
 
