@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.my.goldmanager.rest.request.AuthRequest;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.entity.JWTTokenInfo;
+import com.my.goldmanager.rest.response.AuthResponse;
 
 @RestController()
 @RequestMapping("/api/auth")
@@ -40,7 +41,7 @@ public class AuthController {
 	private AuthenticationService authenticationService;
 
        @PostMapping("/login")
-       public ResponseEntity<JWTTokenInfo> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
+       public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
                try {
                        JWTTokenInfo tokenInfo = authenticationService.getJWTToken(authRequest.getUsername(), authRequest.getPassword());
                        ResponseCookie cookie = ResponseCookie.from("jwt-token", tokenInfo.getToken())
@@ -48,14 +49,15 @@ public class AuthController {
                                        .path("/")
                                        .build();
                        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                       return ResponseEntity.ok(tokenInfo);
+                       AuthResponse body = new AuthResponse(tokenInfo.getRefreshAfter(), tokenInfo.getEpiresOn());
+                       return ResponseEntity.ok(body);
                } catch (AuthenticationException e) {
                        return ResponseEntity.status(401).build();
                }
        }
 
        @GetMapping("/refresh")
-       public ResponseEntity<JWTTokenInfo> refresh(HttpServletResponse response) {
+       public ResponseEntity<AuthResponse> refresh(HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		try {
@@ -71,7 +73,8 @@ public class AuthController {
                                        .path("/")
                                        .build();
                        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                       return ResponseEntity.ok(tokenInfo);
+                       AuthResponse body = new AuthResponse(tokenInfo.getRefreshAfter(), tokenInfo.getEpiresOn());
+                       return ResponseEntity.ok(body);
 		} catch (AuthenticationException e) {
 			return ResponseEntity.status(401).build();
 		}

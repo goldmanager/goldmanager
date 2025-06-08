@@ -8,7 +8,7 @@ The backend exposes a set of endpoints under the `/api` prefix. They allow manag
 
 ## Authentication
 
-The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token must be included as `Authorization: Bearer <token>` in subsequent requests. `/api/auth/refresh` provides token refresh and `/api/auth/logoutuser` clears the server side session.
+The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token is delivered only as an HttpOnly cookie named `jwt-token` and is therefore automatically included in subsequent requests. `/api/auth/refresh` refreshes the cookie and returns a JSON body with the new expiration data while `/api/auth/logoutuser` clears the session cookie.
 
 ## Main Endpoints
 
@@ -68,7 +68,7 @@ npm run dev
 ## Example Workflow
 
 1. Authenticate via POST `/api/auth/login`.
-2. Use the received token to create a material with POST `/api/materials`.
+2. The browser stores the `jwt-token` cookie automatically. Use it to create a material with POST `/api/materials`.
 3. Add an item referencing that material with POST `/api/items`.
 4. Fetch current prices using GET `/api/prices`.
 5. View the data in the UI under `/items` or `/metals` routes.

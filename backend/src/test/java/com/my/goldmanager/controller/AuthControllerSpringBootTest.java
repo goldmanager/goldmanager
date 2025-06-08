@@ -20,6 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import jakarta.servlet.http.Cookie;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +30,7 @@ import com.my.goldmanager.rest.request.AuthRequest;
 import com.my.goldmanager.service.AuthKeyInfoService;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
-import com.my.goldmanager.service.entity.JWTTokenInfo;
+import com.my.goldmanager.rest.response.AuthResponse;
 import com.my.goldmanager.service.entity.KeyInfo;
 
 @SpringBootTest
@@ -67,20 +69,20 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password");
 
-		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(authRequest)))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                MvcResult result = mockMvc
+                                .perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(authRequest)))
+                                .andExpect(status().isOk()).andReturn();
 
-		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
-		assertNotNull(jwtTokenInfo);
-		assertNotNull(jwtTokenInfo.getEpiresOn());
-		assertNotNull(jwtTokenInfo.getRefreshAfter());
-		assertTrue(jwtTokenInfo.getEpiresOn().after(jwtTokenInfo.getRefreshAfter()));
-		assertNotNull(jwtTokenInfo.getToken());
+                String cookie = result.getResponse().getCookie("jwt-token").getValue();
+                AuthResponse jwtTokenInfo = objectMapper.readValue(result.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(jwtTokenInfo);
+                assertNotNull(jwtTokenInfo.getEpiresOn());
+                assertNotNull(jwtTokenInfo.getRefreshAfter());
+                assertTrue(jwtTokenInfo.getEpiresOn().after(jwtTokenInfo.getRefreshAfter()));
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().isOk());
+                mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().isOk());
 
 	}
 
@@ -103,17 +105,18 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password");
 
-		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(authRequest)))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                MvcResult result = mockMvc
+                                .perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(authRequest)))
+                                .andExpect(status().isOk()).andReturn();
 
-		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
-		mockMvc.perform(get("/api/auth/logoutuser").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().isNoContent());
+                String cookie = result.getResponse().getCookie("jwt-token").getValue();
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().is(403));
+                mockMvc.perform(get("/api/auth/logoutuser").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().isNoContent());
+
+                mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().is(403));
 	}
 
 	@Test
@@ -123,37 +126,37 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password");
 
-		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(authRequest)))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-		KeyInfo oldKey = authKeyInfoService.getKeyInfoForUserName("user");
-		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
-		assertNotNull(jwtTokenInfo);
-		assertNotNull(jwtTokenInfo.getEpiresOn());
-		assertNotNull(jwtTokenInfo.getRefreshAfter());
-		assertTrue(jwtTokenInfo.getEpiresOn().after(jwtTokenInfo.getRefreshAfter()));
-		assertNotNull(jwtTokenInfo.getToken());
+                MvcResult result = mockMvc
+                                .perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(authRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                String cookie = result.getResponse().getCookie("jwt-token").getValue();
+                KeyInfo oldKey = authKeyInfoService.getKeyInfoForUserName("user");
+                AuthResponse jwtTokenInfo = objectMapper.readValue(result.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(jwtTokenInfo);
+                assertNotNull(jwtTokenInfo.getEpiresOn());
+                assertNotNull(jwtTokenInfo.getRefreshAfter());
+                assertTrue(jwtTokenInfo.getEpiresOn().after(jwtTokenInfo.getRefreshAfter()));
 
-		String newToken = mockMvc
-				.perform(get("/api/auth/refresh").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-		KeyInfo newKey = authKeyInfoService.getKeyInfoForUserName("user");
+                MvcResult refreshResult = mockMvc
+                                .perform(get("/api/auth/refresh").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().isOk()).andReturn();
+                String newTokenValue = refreshResult.getResponse().getCookie("jwt-token").getValue();
+                KeyInfo newKey = authKeyInfoService.getKeyInfoForUserName("user");
 
-		JWTTokenInfo newJWTTokenInfo = objectMapper.readValue(newToken, JWTTokenInfo.class);
-		assertNotNull(newJWTTokenInfo);
-		assertNotNull(newJWTTokenInfo.getEpiresOn());
-		assertNotNull(newJWTTokenInfo.getRefreshAfter());
-		assertTrue(newJWTTokenInfo.getEpiresOn().after(newJWTTokenInfo.getRefreshAfter()));
-		assertTrue(newJWTTokenInfo.getEpiresOn().after(jwtTokenInfo.getEpiresOn()));
-		assertTrue(newJWTTokenInfo.getRefreshAfter().after(jwtTokenInfo.getRefreshAfter()));
-		assertNotNull(newJWTTokenInfo.getToken());
-		assertEquals(oldKey.getKeyId(), newKey.getKeyId());
+                AuthResponse newJWTTokenInfo = objectMapper.readValue(refreshResult.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(newJWTTokenInfo);
+                assertNotNull(newJWTTokenInfo.getEpiresOn());
+                assertNotNull(newJWTTokenInfo.getRefreshAfter());
+                assertTrue(newJWTTokenInfo.getEpiresOn().after(newJWTTokenInfo.getRefreshAfter()));
+                assertTrue(newJWTTokenInfo.getEpiresOn().after(jwtTokenInfo.getEpiresOn()));
+                assertTrue(newJWTTokenInfo.getRefreshAfter().after(jwtTokenInfo.getRefreshAfter()));
+                assertEquals(oldKey.getKeyId(), newKey.getKeyId());
 
-		assertArrayEquals(oldKey.getKey().getEncoded(), newKey.getKey().getEncoded());
+                assertArrayEquals(oldKey.getKey().getEncoded(), newKey.getKey().getEncoded());
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + newJWTTokenInfo.getToken()))
-				.andExpect(status().isOk());
+                mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", newTokenValue)))
+                                .andExpect(status().isOk());
 	}
 
 	@Test
@@ -163,39 +166,38 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password");
 
-		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(authRequest)))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-		KeyInfo oldKey = authKeyInfoService.getKeyInfoForUserName("user");
+                MvcResult result = mockMvc
+                                .perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(authRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                String cookie = result.getResponse().getCookie("jwt-token").getValue();
+                KeyInfo oldKey = authKeyInfoService.getKeyInfoForUserName("user");
 
-		authKeyInfoService.invalidateKeyForUsername("user");
+                authKeyInfoService.invalidateKeyForUsername("user");
 
-		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
-		assertNotNull(jwtTokenInfo);
-		assertNotNull(jwtTokenInfo.getEpiresOn());
-		assertNotNull(jwtTokenInfo.getRefreshAfter());
-		assertNotNull(jwtTokenInfo.getToken());
-		String newToken = mockMvc
-				.perform(get("/api/auth/refresh").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                AuthResponse jwtTokenInfo = objectMapper.readValue(result.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(jwtTokenInfo);
+                assertNotNull(jwtTokenInfo.getEpiresOn());
+                assertNotNull(jwtTokenInfo.getRefreshAfter());
+                
+                MvcResult refreshResult = mockMvc
+                                .perform(get("/api/auth/refresh").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().isOk()).andReturn();
 
-		JWTTokenInfo newJWTTokenInfo = objectMapper.readValue(newToken, JWTTokenInfo.class);
-		assertNotNull(newJWTTokenInfo);
-		assertNotNull(newJWTTokenInfo.getEpiresOn());
-		assertNotNull(newJWTTokenInfo.getRefreshAfter());
-		assertNotNull(newJWTTokenInfo.getToken());
-		KeyInfo newKey = authKeyInfoService.getKeyInfoForUserName("user");
+                AuthResponse newJWTTokenInfo = objectMapper.readValue(refreshResult.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(newJWTTokenInfo);
+                assertNotNull(newJWTTokenInfo.getEpiresOn());
+                assertNotNull(newJWTTokenInfo.getRefreshAfter());
+                KeyInfo newKey = authKeyInfoService.getKeyInfoForUserName("user");
 
-		assertNotEquals(jwtTokenInfo.getToken(), newJWTTokenInfo.getToken());
-		assertNotEquals(oldKey.getKeyId(), newKey.getKeyId());
-		assertFalse(Arrays.equals(oldKey.getKey().getEncoded(), newKey.getKey().getEncoded()));
+                assertNotEquals(oldKey.getKeyId(), newKey.getKeyId());
+                assertFalse(Arrays.equals(oldKey.getKey().getEncoded(), newKey.getKey().getEncoded()));
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + newJWTTokenInfo.getToken()))
-				.andExpect(status().isOk());
+                mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", refreshResult.getResponse().getCookie("jwt-token").getValue())))
+                                .andExpect(status().isOk());
 
-		mockMvc.perform(get("/api/userService").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().isOk());
+                mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().isOk());
 
 	}
 
@@ -206,21 +208,22 @@ public class AuthControllerSpringBootTest {
 		authRequest.setUsername("user");
 		authRequest.setPassword("password");
 
-		String token = mockMvc
-				.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(authRequest)))
-				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                MvcResult result = mockMvc
+                                .perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(authRequest)))
+                                .andExpect(status().isOk()).andReturn();
 
-		userService.deleteUser("user", true);
+                userService.deleteUser("user", true);
 
-		JWTTokenInfo jwtTokenInfo = objectMapper.readValue(token, JWTTokenInfo.class);
-		assertNotNull(jwtTokenInfo);
-		assertNotNull(jwtTokenInfo.getEpiresOn());
-		assertNotNull(jwtTokenInfo.getRefreshAfter());
-		assertNotNull(jwtTokenInfo.getToken());
-		mockMvc
-				.perform(get("/api/auth/refresh").header("Authorization", "Bearer " + jwtTokenInfo.getToken()))
-				.andExpect(status().is(403));
+                String cookie = result.getResponse().getCookie("jwt-token").getValue();
+
+                AuthResponse jwtTokenInfo = objectMapper.readValue(result.getResponse().getContentAsString(), AuthResponse.class);
+                assertNotNull(jwtTokenInfo);
+                assertNotNull(jwtTokenInfo.getEpiresOn());
+                assertNotNull(jwtTokenInfo.getRefreshAfter());
+                mockMvc
+                                .perform(get("/api/auth/refresh").cookie(new Cookie("jwt-token", cookie)))
+                                .andExpect(status().is(403));
 
 	}
 }
