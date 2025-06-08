@@ -195,7 +195,7 @@ class ExportDataCryptorTest {
                 Exception exception = assertThrows(ValidationException.class,
                                 () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
 
-                assertEquals("Invalid encrypted data size", exception.getMessage());
+				assertEquals("Encrypted payload exceeds configured maximum size", exception.getMessage());
         }
 
         private byte[] createDataWithLargeEncryptedSize(long size) throws IOException {
