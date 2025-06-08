@@ -15,7 +15,10 @@ const compat = new FlatCompat({
 export default [
   ...compat.extends('plugin:vue/recommended', 'eslint:recommended'),
   ...compat.plugins('vue'),
-  ...compat.env({ node: true }),
+  ...compat.env({
+    node: true,
+    browser: true
+  }),
   ...compat.config({
     parser: 'vue-eslint-parser',
     parserOptions: {
