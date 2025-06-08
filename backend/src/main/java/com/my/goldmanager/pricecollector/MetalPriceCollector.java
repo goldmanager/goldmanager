@@ -148,7 +148,7 @@ public class MetalPriceCollector {
 							.build();
 					HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 					String body = response.body();
-					if (response.statusCode() == 200) {
+                                        if (response.statusCode() == 200) {
 						LatestPrices latestPrices = objectMapper.readValue(body, LatestPrices.class);
 						if (latestPrices.isSuccess() && latestPrices.getRates() != null) {
 
@@ -159,8 +159,9 @@ public class MetalPriceCollector {
 											latestPrices.getRates().get(currency + mappingSettings.get(m.getName())),
 											entryDate));
 						}
-					} else {
-						logger.error("Could not fetch current prices, response code: {}, body:{}", body);
+                                        } else {
+                                                logger.error("Could not fetch current prices, response code: {}, body: {}",
+                                                                response.statusCode(), body);
 					}
 				} catch (IOException | InterruptedException e) {
 					logger.error("Error while retreiving current material price", e);

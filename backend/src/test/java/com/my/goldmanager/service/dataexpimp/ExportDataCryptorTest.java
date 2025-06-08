@@ -154,8 +154,8 @@ class ExportDataCryptorTest {
 		return outputStream.toByteArray();
 	}
 
-	private byte[] createDataWithInvalidBodyHeader(String encryptionPassword, int bodyHeaderLength)
-			throws Exception {
+    private byte[] createDataWithInvalidBodyHeader(String encryptionPassword, int bodyHeaderLength)
+                    throws Exception {
 		byte[] invalidBodyHeaderData = new byte[bodyHeaderLength];
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
@@ -184,7 +184,31 @@ class ExportDataCryptorTest {
 			deflaterOutPutStream.flush();
 		}
 
-		return bos.toByteArray();
-	}
+                return bos.toByteArray();
+        }
+
+        @Test
+        void testDecrypt_TooLargeEncryptedDataSize() throws Exception {
+                String encryptionPassword = "validPassword";
+                byte[] invalidData = createDataWithLargeEncryptedSize(ExportDataCryptor.MAX_ENCRYPTED_DATA_SIZE + 1);
+
+                Exception exception = assertThrows(ValidationException.class,
+                                () -> exportDataCryptor.decrypt(invalidData, encryptionPassword));
+
+				assertEquals("Encrypted payload exceeds configured maximum size", exception.getMessage());
+        }
+
+        private byte[] createDataWithLargeEncryptedSize(long size) throws IOException {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+                try (DeflaterOutputStream out = new DeflaterOutputStream(bos, deflater)) {
+                        out.write(ExportDataCryptor.header_start);
+                        out.write(DataExportImportUtil.longToByteArray(size));
+                        out.write(new byte[DataExportImportCryptoUtil.SALT_LENGTH]);
+                        out.write(new byte[DataExportImportCryptoUtil.IV_LENGTH]);
+                        out.flush();
+                }
+                return bos.toByteArray();
+        }
 
 }

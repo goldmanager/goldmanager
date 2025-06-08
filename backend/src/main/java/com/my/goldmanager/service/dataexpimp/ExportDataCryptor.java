@@ -41,6 +41,9 @@ import com.my.goldmanager.service.exception.ValidationException;
 @Service
 public class ExportDataCryptor {
 
+       /** Maximum allowed size for the encrypted payload in bytes */
+       public static final long MAX_ENCRYPTED_DATA_SIZE = 50L * 1024 * 1024; // 50 MB
+
 	public static final byte[] header_start = { 'E', 'x', 'p', 'e', 'n', 'c', 'v', '1' };
 	public static final byte[] body_start = { 'E', 'x', 'p', 'd', 'a', 't', 'a', 'v', '1' };
 
@@ -131,6 +134,7 @@ public class ExportDataCryptor {
                         byte[] encryptedDataSizeBytes = new byte[8];
                         DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
                         long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
+
                         if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
                                 throw new ValidationException("Encrypted payload exceeds configured maximum size");
                         }
