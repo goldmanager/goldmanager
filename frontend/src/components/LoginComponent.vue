@@ -30,7 +30,6 @@ export default {
       username: '',
       password: '',
       errorMessage: '',
-      logoUrl: require('@/assets/logo.png'),
       importStatus: '',
       importStatusMessage: '',
       showImportStatus: false,

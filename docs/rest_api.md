@@ -62,7 +62,7 @@ cd backend
 # Run frontend
 cd ../frontend
 npm install
-npm run serve
+npm run dev
 ```
 
 ## Example Workflow

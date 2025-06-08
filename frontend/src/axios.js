@@ -13,7 +13,7 @@ function isTokenExpiringSoon() {
 
 async function refreshToken(oldToken) {
 	try {
-		const response = await axios.get((process.env.VUE_APP_API_BASE_URL ?? "") + "/api/auth/refresh", {
+                const response = await axios.get((import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/refresh", {
 			headers: {
 				'Authorization': `Bearer ${oldToken}`
 			},
@@ -33,7 +33,7 @@ async function refreshToken(oldToken) {
 }
 
 const instance = axios.create({
-	baseURL: (process.env.VUE_APP_API_BASE_URL ?? "") + "/api/",
+        baseURL: (import.meta.env.VITE_API_BASE_URL ?? "") + "/api/",
 	withCredentials: true
 });
 
