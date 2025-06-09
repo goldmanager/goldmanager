@@ -55,9 +55,9 @@ public class DefaultSecurityConfiguration {
 
 	@Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.csrf(csrf -> csrf
-                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                               .ignoringRequestMatchers("/api/auth/csrf"))
+               http.csrf(csrf -> csrf
+                               .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(
                                                requests -> requests.requestMatchers("/api/auth/login").permitAll()

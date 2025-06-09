@@ -57,7 +57,15 @@ public class AuthController {
        }
 
        @GetMapping("/csrf")
-       public ResponseEntity<Void> csrf() {
+       public ResponseEntity<Void> csrf(jakarta.servlet.http.HttpServletRequest request) {
+               org.springframework.security.web.csrf.CsrfToken token =
+                               (org.springframework.security.web.csrf.CsrfToken) request
+                                               .getAttribute(org.springframework.security.web.csrf.CsrfToken.class.getName());
+               if (token != null) {
+                       return ResponseEntity.noContent()
+                                       .header("X-CSRF-TOKEN", token.getToken())
+                                       .build();
+               }
                return ResponseEntity.noContent().build();
        }
 
