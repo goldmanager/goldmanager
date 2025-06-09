@@ -45,6 +45,7 @@
 <script>
 import axios from '../axios';
 import { mapActions } from 'vuex';
+import { clearSession } from '@/utils/session';
 
 export default {
   name: 'DataImportComponent',
@@ -181,8 +182,7 @@ export default {
         console.error('logout request failed', error);
       }
       this.$store.dispatch('logout');
-      sessionStorage.removeItem('username');
-      sessionStorage.removeItem('jwtRefresh');
+      clearSession();
       this.$router.push('/login');
     },
     setErrorMessage(error, defaultMessage) {

@@ -150,6 +150,7 @@
 <script>
 /*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
 import axios from '../axios';
+import { getCurrentUsername } from '@/utils/session';
 
 export default {
   name: 'UsersComponent',
@@ -256,7 +257,7 @@ export default {
 		}, 3000);
 	},
   isUserCurrentUser(username){
-   return sessionStorage.getItem("username") === username;
+   return getCurrentUsername() === username;
   },
   getButtonClass(isCurrentUser){
     if(isCurrentUser){
