@@ -56,6 +56,11 @@ public class AuthController {
                }
        }
 
+       @GetMapping("/csrf")
+       public ResponseEntity<Void> csrf() {
+               return ResponseEntity.noContent().build();
+       }
+
        @GetMapping("/refresh")
        public ResponseEntity<AuthResponse> refresh(HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -10,7 +10,8 @@ The backend exposes a set of endpoints under the `/api` prefix. They allow manag
 
 The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token is
 delivered only as an HttpOnly cookie named `jwt-token`. A CSRF token is also
-issued as a cookie named `XSRF-TOKEN`. Axios reads this cookie and sends the
+issued as a cookie named `XSRF-TOKEN`. If the cookie is missing the endpoint
+`/api/auth/csrf` can be called once to obtain it. Axios reads this cookie and sends the
 value in the `X-XSRF-TOKEN` header automatically. `/api/auth/refresh` refreshes
 the JWT cookie and returns a JSON body with the new expiration data while
 `/api/auth/logoutuser` clears the session cookie.

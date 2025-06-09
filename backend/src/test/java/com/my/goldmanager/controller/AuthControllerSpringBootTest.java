@@ -63,7 +63,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-	public void testLoginSuccess() throws JsonProcessingException, Exception {
+        public void testLoginSuccess() throws JsonProcessingException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -84,7 +84,13 @@ public class AuthControllerSpringBootTest {
                 mockMvc.perform(get("/api/userService").cookie(new Cookie("jwt-token", cookie)))
                                 .andExpect(status().isOk());
 
-	}
+        }
+
+        @Test
+        public void testCsrfEndpoint() throws Exception {
+                mockMvc.perform(get("/api/auth/csrf"))
+                                .andExpect(status().isNoContent());
+        }
 
 	@Test
 	public void testLoginFailure() throws JsonProcessingException, Exception {

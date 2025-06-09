@@ -2,6 +2,11 @@ import axios from 'axios';
 import router from '@/router';
 import store from '@/store';
 
+function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[2]) : null;
+}
+
 function isTokenExpiringSoon() {
         const refresh = sessionStorage.getItem('jwtRefresh');
         if (!refresh) return false;
@@ -34,6 +39,9 @@ const instance = axios.create({
 
 
 instance.interceptors.request.use(async config => {
+        if (['post', 'put', 'delete', 'patch'].includes(config.method) && !getCookie('XSRF-TOKEN')) {
+                await axios.get((import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/csrf", { withCredentials: true });
+        }
         if (isTokenExpiringSoon()) {
                 await refreshToken();
         }
