@@ -43,6 +43,7 @@
 <script>
 import axios from '../axios';
 import { mapActions } from 'vuex';
+import { saveSession } from '@/utils/session';
 
 export default {
   data() {
@@ -70,8 +71,7 @@ export default {
           username: this.username,
           password: this.password
         });
-        sessionStorage.setItem('jwtRefresh', response.data.refreshAfter);
-        sessionStorage.setItem('username', this.username);
+        saveSession(this.username, response.data.refreshAfter);
         await this.$store.dispatch('login'); 
         this.$router.push('/'); 
       } catch (error) {

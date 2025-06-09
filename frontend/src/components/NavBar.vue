@@ -44,6 +44,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import axios from '../axios';
+import { clearSession } from '@/utils/session';
 
 export default {
   name: 'NavBar',
@@ -60,8 +61,7 @@ export default {
         console.error("logout request failed",error)
       }
       this.$store.dispatch('logout');
-      sessionStorage.removeItem('username');
-      sessionStorage.removeItem('jwtRefresh');
+      clearSession();
       this.$router.push('/login');
     }
   }

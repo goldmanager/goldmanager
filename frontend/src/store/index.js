@@ -1,8 +1,9 @@
 import { createStore } from 'vuex'; // Import createStore from 'vuex'
+import { isAuthenticated } from '@/utils/session';
 
 export default createStore({
   state: {
-    isAuthenticated: !!sessionStorage.getItem('username') // Initialize the authentication status
+    isAuthenticated: isAuthenticated() // Initialize the authentication status
   },
   mutations: {
     setAuthStatus(state, status) {

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import router from '@/router';
 import store from '@/store';
+import { saveSession, clearSession, getCurrentUsername } from '@/utils/session';
 
 function getCookie(name) {
         const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
@@ -23,7 +24,7 @@ async function refreshToken() {
                 });
 
                 if (response.data.refreshAfter) {
-                        sessionStorage.setItem('jwtRefresh', response.data.refreshAfter);
+                        saveSession(getCurrentUsername(), response.data.refreshAfter);
                 }
         } catch (error) {
                 console.error('Token refresh failed:', error);
@@ -59,8 +60,7 @@ instance.interceptors.response.use(response => {
 
 	if (error.response && error.response.status === 403) {
 		
-                sessionStorage.removeItem('username');
-                sessionStorage.removeItem('jwtRefresh');
+                clearSession();
                 store.dispatch('logout');
                 if (router.currentRoute.value.path !== '/login') {
                         router.push({ path: '/login' });

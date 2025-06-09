@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { isAuthenticated } from '@/utils/session';
 const Prices = () => import('../components/PricesComponent.vue');
 const UserLogin = () => import('../components/LoginComponent.vue');
 const Metals = () => import('../components/MetalsComponent.vue');
@@ -31,11 +32,11 @@ const router = createRouter({
 
 // Router guard to check the authentication status
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!sessionStorage.getItem('username'); // Check whether the user is authenticated
+  const authenticated = isAuthenticated();
 
   // If the route requires authentication
   if (to.meta.requiresAuth) {
-    if (isAuthenticated) {
+    if (authenticated) {
       next(); // User is authenticated, proceed to the route
     } else {
       next('/login'); // User is not authenticated, redirect to the login page
