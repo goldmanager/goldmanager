@@ -53,11 +53,12 @@ public class DefaultSecurityConfiguration {
 	@Autowired
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-	@Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-               http.csrf(csrf -> csrf
-                               .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
+       @Bean
+       public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+               http.cors(cors -> cors.configure(http))
+                               .csrf(csrf -> csrf
+                                               .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(
                                                requests -> requests.requestMatchers("/api/auth/login").permitAll()
@@ -65,7 +66,8 @@ public class DefaultSecurityConfiguration {
                                                                 .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
                                                                 .requestMatchers("/api/**").authenticated()
                                                                 .anyRequest().permitAll())
-                                .httpBasic(httpBasic -> httpBasic.disable());
+                               .httpBasic(httpBasic -> httpBasic.disable())
+                               .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

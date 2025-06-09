@@ -4,7 +4,7 @@ This document provides an overview of the backend REST API and how it is consume
 
 ## Overview
 
-The backend exposes a set of endpoints under the `/api` prefix. They allow management of materials, items and prices of precious metals. Authentication is handled with JWT tokens. During development the `dev` Spring profile enables CORS to allow local UI servers.
+The backend exposes a set of endpoints under the `/api` prefix. They allow management of materials, items and prices of precious metals. Authentication is handled with JWT tokens. During development the `dev` Spring profile enables CORS to allow local UI servers. In production the `default` profile configures CORS with a same-origin policy so the built Vue frontend served by Spring Boot can reach the API.
 
 ## Authentication
 
