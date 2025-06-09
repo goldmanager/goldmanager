@@ -57,7 +57,7 @@ public class DevSecurityConfiguration {
                http.cors(cors -> cors.configure(http))
                                .csrf(csrf -> csrf
                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
+                                               .ignoringRequestMatchers("/api/auth/login"))
                                 .authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                                                 .requestMatchers("/api/auth/login").permitAll()

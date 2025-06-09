@@ -58,7 +58,7 @@ public class DefaultSecurityConfiguration {
                http.cors(cors -> cors.configure(http))
                                .csrf(csrf -> csrf
                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
+                                               .ignoringRequestMatchers("/api/auth/login"))
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(
                                                requests -> requests.requestMatchers("/api/auth/login").permitAll()
