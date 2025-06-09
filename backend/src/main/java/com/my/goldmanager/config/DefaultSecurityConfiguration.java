@@ -57,10 +57,11 @@ public class DefaultSecurityConfiguration {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http.csrf(csrf -> csrf
                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                .ignoringRequestMatchers("/api/auth/csrf"))
-                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(
-                                                requests -> requests.requestMatchers("/api/auth/login").permitAll()
+                               .ignoringRequestMatchers("/api/auth/csrf"))
+                               .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                               .authorizeHttpRequests(
+                                               requests -> requests.requestMatchers("/api/auth/login").permitAll()
+                                                                .requestMatchers("/api/auth/csrf").permitAll()
                                                                 .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
                                                                 .requestMatchers("/api/**").authenticated()
                                                                 .anyRequest().permitAll())

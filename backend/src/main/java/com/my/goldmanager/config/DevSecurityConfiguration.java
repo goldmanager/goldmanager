@@ -60,9 +60,10 @@ public class DevSecurityConfiguration {
                                                 .ignoringRequestMatchers("/api/auth/csrf"))
                                 .authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-						.requestMatchers("/api/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
-						.requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+                                                .requestMatchers("/api/auth/login").permitAll()
+                                                .requestMatchers("/api/auth/csrf").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+                                                .requestMatchers("/api/**").authenticated().anyRequest().permitAll())
 				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
 				.httpBasic(httpBasic -> httpBasic.disable());
