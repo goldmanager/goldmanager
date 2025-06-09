@@ -8,7 +8,15 @@ The backend exposes a set of endpoints under the `/api` prefix. They allow manag
 
 ## Authentication
 
-The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token must be included as `Authorization: Bearer <token>` in subsequent requests. `/api/auth/refresh` provides token refresh and `/api/auth/logoutuser` clears the server side session.
+The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token is
+delivered only as an HttpOnly cookie named `jwt-token`. A CSRF token is also
+issued as a cookie named `XSRF-TOKEN`. If the cookie is missing the public endpoint
+`/api/auth/login` is exempt from CSRF checks so the first login works without a token. If
+the `XSRF-TOKEN` cookie is missing, the public endpoint `/api/auth/csrf` can be called to obtain it.
+This endpoint returns the token in the `X-CSRF-TOKEN` header. Axios reads the cookie and sends the
+value in the `X-XSRF-TOKEN` header automatically. `/api/auth/refresh` refreshes
+the JWT cookie and returns a JSON body with the new expiration data while
+`/api/auth/logoutuser` clears the session cookie.
 
 ## Main Endpoints
 
@@ -47,7 +55,11 @@ may report `PASSWORD_ERROR` when the supplied password is invalid. Download the 
 
 ## Integration with the UI
 
-The Vue frontend uses Axios (`src/axios.js`) configured with the base URL `/api/`. The Axios instance automatically attaches the stored JWT token and refreshes it when needed. Components invoke the API through this instance to retrieve or modify data. Routes defined in `src/router/index.js` guard access and redirect to `/login` when no token is present.
+The Vue frontend uses Axios (`src/axios.js`) configured with the base URL `/api/`.
+It automatically sends the `jwt-token` and `XSRF-TOKEN` cookies with each
+request and refreshes the session when needed. Components invoke the API through
+this instance to retrieve or modify data. Routes defined in `src/router/index.js`
+guard access and redirect to `/login` when no username is stored.
 
 To start a local development environment:
 
@@ -68,7 +80,7 @@ npm run dev
 ## Example Workflow
 
 1. Authenticate via POST `/api/auth/login`.
-2. Use the received token to create a material with POST `/api/materials`.
+2. The browser stores the `jwt-token` cookie automatically. Use it to create a material with POST `/api/materials`.
 3. Add an item referencing that material with POST `/api/items`.
 4. Fetch current prices using GET `/api/prices`.
 5. View the data in the UI under `/items` or `/metals` routes.

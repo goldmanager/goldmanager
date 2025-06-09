@@ -52,6 +52,7 @@ public class TestSecurityConfiguration {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http.authorizeHttpRequests(
                                 (requests) -> requests.requestMatchers("/api/auth/login").permitAll()
+                                                .requestMatchers("/api/auth/csrf").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
                                                 .requestMatchers("/api/**").authenticated()
                                                 .anyRequest().permitAll())

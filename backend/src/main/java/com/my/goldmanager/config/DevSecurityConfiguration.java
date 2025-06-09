@@ -33,6 +33,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
@@ -52,13 +53,17 @@ public class DevSecurityConfiguration {
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(cors -> cors.configure(http)).csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+               http.cors(cors -> cors.configure(http))
+                               .csrf(csrf -> csrf
+                                               .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                               .ignoringRequestMatchers("/api/auth/csrf", "/api/auth/login"))
+                                .authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-						.requestMatchers("/api/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
-						.requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+                                                .requestMatchers("/api/auth/login").permitAll()
+                                                .requestMatchers("/api/auth/csrf").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
+                                                .requestMatchers("/api/**").authenticated().anyRequest().permitAll())
 				.sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
 				.httpBasic(httpBasic -> httpBasic.disable());

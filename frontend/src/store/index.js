@@ -2,7 +2,7 @@ import { createStore } from 'vuex'; // Import createStore from 'vuex'
 
 export default createStore({
   state: {
-    isAuthenticated: !!sessionStorage.getItem('jwt-token') // Initialize the authentication status
+    isAuthenticated: !!sessionStorage.getItem('username') // Initialize the authentication status
   },
   mutations: {
     setAuthStatus(state, status) {

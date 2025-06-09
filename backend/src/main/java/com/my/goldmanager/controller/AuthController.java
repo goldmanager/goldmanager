@@ -24,10 +24,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.my.goldmanager.rest.request.AuthRequest;
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.entity.JWTTokenInfo;
+import com.my.goldmanager.rest.response.AuthResponse;
 
 @RestController()
 @RequestMapping("/api/auth")
@@ -36,19 +40,37 @@ public class AuthController {
 	@Autowired
 	private AuthenticationService authenticationService;
 
-	@PostMapping("/login")
-	public ResponseEntity<JWTTokenInfo> login(@RequestBody AuthRequest authRequest) {
-		try {
+       @PostMapping("/login")
+       public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
+               try {
+                       JWTTokenInfo tokenInfo = authenticationService.getJWTToken(authRequest.getUsername(), authRequest.getPassword());
+                       ResponseCookie cookie = ResponseCookie.from("jwt-token", tokenInfo.getToken())
+                                       .httpOnly(true)
+                                       .path("/")
+                                       .build();
+                       response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                       AuthResponse body = new AuthResponse(tokenInfo.getRefreshAfter(), tokenInfo.getEpiresOn());
+                       return ResponseEntity.ok(body);
+               } catch (AuthenticationException e) {
+                       return ResponseEntity.status(401).build();
+               }
+       }
 
-			return ResponseEntity
-					.ok(authenticationService.getJWTToken(authRequest.getUsername(), authRequest.getPassword()));
-		} catch (AuthenticationException e) {
-			return ResponseEntity.status(401).build();
-		}
-	}
+       @GetMapping("/csrf")
+       public ResponseEntity<Void> csrf(jakarta.servlet.http.HttpServletRequest request) {
+               org.springframework.security.web.csrf.CsrfToken token =
+                               (org.springframework.security.web.csrf.CsrfToken) request
+                                               .getAttribute(org.springframework.security.web.csrf.CsrfToken.class.getName());
+               if (token != null) {
+                       return ResponseEntity.noContent()
+                                       .header("X-CSRF-TOKEN", token.getToken())
+                                       .build();
+               }
+               return ResponseEntity.noContent().build();
+       }
 
-	@GetMapping("/refresh")
-	public ResponseEntity<JWTTokenInfo> refresh() {
+       @GetMapping("/refresh")
+       public ResponseEntity<AuthResponse> refresh(HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		try {
@@ -58,20 +80,33 @@ public class AuthController {
 				// and the authentication object is null if not authenticated
 				return ResponseEntity.status(401).build();
 			}
-			return ResponseEntity.ok(authenticationService.refreshJWTToken(authentication.getName()));
+                       JWTTokenInfo tokenInfo = authenticationService.refreshJWTToken(authentication.getName());
+                       ResponseCookie cookie = ResponseCookie.from("jwt-token", tokenInfo.getToken())
+                                       .httpOnly(true)
+                                       .path("/")
+                                       .build();
+                       response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                       AuthResponse body = new AuthResponse(tokenInfo.getRefreshAfter(), tokenInfo.getEpiresOn());
+                       return ResponseEntity.ok(body);
 		} catch (AuthenticationException e) {
 			return ResponseEntity.status(401).build();
 		}
 
 	}
 
-	@GetMapping("/logoutuser")
-	public ResponseEntity<Void> logout() {
+       @GetMapping("/logoutuser")
+       public ResponseEntity<Void> logout(HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		authenticationService.logout(authentication.getName());
-		SecurityContextHolder.clearContext();
-		return ResponseEntity.noContent().build();
+               SecurityContextHolder.clearContext();
+               ResponseCookie cookie = ResponseCookie.from("jwt-token", "")
+                               .httpOnly(true)
+                               .path("/")
+                               .maxAge(0)
+                               .build();
+               response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+               return ResponseEntity.noContent().build();
 	}
 
 }

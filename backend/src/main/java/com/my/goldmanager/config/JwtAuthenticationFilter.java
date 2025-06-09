@@ -17,6 +17,7 @@ package com.my.goldmanager.config;
 import java.io.IOException;
 import java.security.Key;
 import java.util.Collections;
+import jakarta.servlet.http.Cookie;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,10 +45,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String header = request.getHeader("Authorization");
-		if (header != null && header.startsWith("Bearer ")) {
-			String token = header.substring(7);
-			try {
+               String header = request.getHeader("Authorization");
+               if ((header == null || !header.startsWith("Bearer ")) && request.getCookies() != null) {
+                       for (Cookie cookie : request.getCookies()) {
+                               if ("jwt-token".equals(cookie.getName())) {
+                                       header = "Bearer " + cookie.getValue();
+                                       break;
+                               }
+                       }
+               }
+
+               if (header != null && header.startsWith("Bearer ")) {
+                       String token = header.substring(7);
+                       try {
 				Claims claims = Jwts.parser().keyLocator(new Locator<Key>() {
 
 					@Override

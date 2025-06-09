@@ -31,7 +31,7 @@ const router = createRouter({
 
 // Router guard to check the authentication status
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!sessionStorage.getItem('jwt-token'); // Check whether the user is authenticated
+  const isAuthenticated = !!sessionStorage.getItem('username'); // Check whether the user is authenticated
 
   // If the route requires authentication
   if (to.meta.requiresAuth) {

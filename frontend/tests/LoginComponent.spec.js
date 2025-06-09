@@ -40,7 +40,7 @@ describe('LoginComponent', () => {
   })
 
   it('dispatches login action on success', async () => {
-    axios.post.mockResolvedValue({ data: { token: 't', refreshAfter: 'r' } })
+    axios.post.mockResolvedValue({ data: { refreshAfter: 'r' } })
     const { wrapper, loginAction, router } = mountComponent()
     await wrapper.setData({ username: 'u', password: 'p' })
     await wrapper.find('form').trigger('submit.prevent')
