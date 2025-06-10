@@ -43,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Profile("default")
+@Profile({"default", "dev"})
 public class DefaultSecurityConfiguration {
 
 

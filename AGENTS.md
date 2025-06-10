@@ -73,16 +73,15 @@ Use concise commit messages that start with a short imperative summary.
 Provide additional context in the body if needed.
 
 # Authentication Configurations
-The Spring Boot application defines three Security Configurations:
-1. `DefaultSecurityConfiguration` (profile `default`)
-2. `DevSecurityConfiguration` (profile `dev`)
-3. `TestSecurityConfiguration` (profile `test`)
+The Spring Boot application defines two Security Configurations:
+1. `DefaultSecurityConfiguration` (profiles `default` and `dev`)
+2. `TestSecurityConfiguration` (profile `test`)
 
-`DefaultSecurityConfiguration` and `DevSecurityConfiguration` contain the same
-rules—sessions are stateless, CSRF and HTTP basic auth are disabled, and the
-`JwtAuthenticationFilter` is inserted. They only differ by the active profile.
-`DevWebConfig` adds CORS settings for development so that a UI dev server like
-Quasar can reach the REST API. `TestSecurityConfiguration` simplifies
+`DefaultSecurityConfiguration` applies the same rules for both the default and
+development profiles—sessions are stateless, CSRF and HTTP basic auth are
+disabled, and the `JwtAuthenticationFilter` is inserted. `DevWebConfig` adds
+CORS settings for development so that a UI dev server like Quasar can reach the
+REST API. `TestSecurityConfiguration` simplifies
 authentication for integration tests and is activated when running with the
 `test` profile.
 
