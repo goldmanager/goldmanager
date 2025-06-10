@@ -6,6 +6,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import jakarta.servlet.http.Cookie;
+import java.nio.charset.StandardCharsets;
 
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
@@ -17,30 +21,37 @@ public class TestHTTPClient {
 	public static final String username = "testuser";
 	private static final String pass = "testpass";
 
-	private static String token = null;
-	private static UserService userService = null;
-	private static AuthenticationService authenticationService = null;
+        private static String token = null;
+        private static String csrfToken = null;
+        private static String maskedCsrfToken = null;
+        private static UserService userService = null;
+        private static AuthenticationService authenticationService = null;
+        private static final CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
 
-	public static void setup(UserService userService, AuthenticationService authenticationService) {
-		TestHTTPClient.authenticationService = authenticationService;
-		TestHTTPClient.userService = userService;
-		try {
-			token = null;
-			userService.create(username, pass);
-		} catch (ValidationException e) {
-			// Nothing to Do
-		}
-	}
+        public static void setup(UserService userService, AuthenticationService authenticationService) {
+                TestHTTPClient.authenticationService = authenticationService;
+                TestHTTPClient.userService = userService;
+                try {
+                        token = null;
+                        csrfToken = null;
+                        maskedCsrfToken = null;
+                        userService.create(username, pass);
+                } catch (ValidationException e) {
+                        // Nothing to Do
+                }
+        }
 
-	public static void cleanup() {
+        public static void cleanup() {
 
-		try {
-			token = null;
-			userService.deleteUser(username, true);
-			userService = null;
-			authenticationService.logoutAll();
-			authenticationService = null;
-		} catch (ValidationException e) {
+                try {
+                        token = null;
+                        csrfToken = null;
+                        maskedCsrfToken = null;
+                        userService.deleteUser(username, true);
+                        userService = null;
+                        authenticationService.logoutAll();
+                        authenticationService = null;
+                } catch (ValidationException e) {
 			// Nothing to do
 		}
 	}
@@ -61,12 +72,35 @@ public class TestHTTPClient {
 		return authenticate(delete(setContextPath(path)));
 	}
 
-	public static MockHttpServletRequestBuilder authenticate(MockHttpServletRequestBuilder builder) {
-		if (token == null) {
-			token = authenticationService.getJWTToken(username, pass).getToken();
-		}
-		return builder.header("Authorization", "Bearer " + token);
-	}
+        public static MockHttpServletRequestBuilder authenticate(MockHttpServletRequestBuilder builder) {
+                if (token == null) {
+                        token = authenticationService.getJWTToken(username, pass).getToken();
+                }
+                if (csrfToken == null) {
+                        MockHttpServletRequest request = new MockHttpServletRequest();
+                        org.springframework.security.web.csrf.CsrfToken tokenObj = csrfRepo.generateToken(request);
+                        csrfToken = tokenObj.getToken();
+                        maskedCsrfToken = maskToken(csrfToken);
+                }
+                return builder.header("Authorization", "Bearer " + token)
+                                .cookie(new Cookie("XSRF-TOKEN", csrfToken))
+                                .header("X-XSRF-TOKEN", maskedCsrfToken);
+        }
+
+        private static String maskToken(String token) {
+                byte[] tokenBytes = token.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                java.security.SecureRandom random = new java.security.SecureRandom();
+                byte[] randomBytes = new byte[tokenBytes.length];
+                random.nextBytes(randomBytes);
+                byte[] xored = new byte[tokenBytes.length];
+                for (int i = 0; i < tokenBytes.length; i++) {
+                        xored[i] = (byte) (randomBytes[i] ^ tokenBytes[i]);
+                }
+                byte[] combined = new byte[tokenBytes.length * 2];
+                System.arraycopy(randomBytes, 0, combined, 0, randomBytes.length);
+                System.arraycopy(xored, 0, combined, randomBytes.length, xored.length);
+                return java.util.Base64.getUrlEncoder().encodeToString(combined);
+        }
 
 	private static String setContextPath(String path) {
 		if (path.startsWith(contextPath + "/")) {
