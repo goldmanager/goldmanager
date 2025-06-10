@@ -63,7 +63,7 @@ public class AuthController {
                                                .getAttribute(org.springframework.security.web.csrf.CsrfToken.class.getName());
                if (token != null) {
                        return ResponseEntity.noContent()
-                                       .header("X-CSRF-TOKEN", token.getToken())
+                                       .header("X-XSRF-TOKEN", token.getToken())
                                        .build();
                }
                return ResponseEntity.noContent().build();

@@ -12,9 +12,9 @@ The `AuthController` offers `/api/auth/login` to obtain a JWT token. The token i
 delivered only as an HttpOnly cookie named `jwt-token`. A CSRF token is also
 issued as a cookie named `XSRF-TOKEN`. If the cookie is missing the public endpoint
 `/api/auth/login` is exempt from CSRF checks so the first login works without a token. If
-the `XSRF-TOKEN` cookie is missing, the public endpoint `/api/auth/csrf` can be called to obtain it.
-This endpoint returns the token in the `X-CSRF-TOKEN` header. Axios reads the cookie and sends the
-value in the `X-XSRF-TOKEN` header automatically. `/api/auth/refresh` refreshes
+the `XSRF-TOKEN` cookie is missing, the public endpoint `/api/auth/csrf` can be called to obtain it. The endpoint
+also returns the token in the `X-XSRF-TOKEN` header so test clients can reuse it. Axios forwards the cookie value
+unchanged in the `X-XSRF-TOKEN` header. `/api/auth/refresh` refreshes
 the JWT cookie and returns a JSON body with the new expiration data while
 `/api/auth/logoutuser` clears the session cookie.
 
