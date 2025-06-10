@@ -55,6 +55,7 @@ public class TestSecurityConfiguration {
                 http.cors(cors -> cors.configure(http))
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
                                                 .ignoringRequestMatchers("/api/auth/login"))
                                 .authorizeHttpRequests((requests) -> requests
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

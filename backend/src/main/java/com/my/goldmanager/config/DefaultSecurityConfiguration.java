@@ -58,6 +58,7 @@ public class DefaultSecurityConfiguration {
                http.cors(cors -> cors.configure(http))
                                .csrf(csrf -> csrf
                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                               .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
                                                .ignoringRequestMatchers("/api/auth/login"))
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(

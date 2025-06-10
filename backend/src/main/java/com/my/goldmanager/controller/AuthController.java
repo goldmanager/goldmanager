@@ -62,27 +62,11 @@ public class AuthController {
                                (org.springframework.security.web.csrf.CsrfToken) request
                                                .getAttribute(org.springframework.security.web.csrf.CsrfToken.class.getName());
                if (token != null) {
-                       String masked = maskToken(token.getToken());
                        return ResponseEntity.noContent()
-                                       .header("X-XSRF-TOKEN", masked)
+                                       .header("X-XSRF-TOKEN", token.getToken())
                                        .build();
                }
                return ResponseEntity.noContent().build();
-       }
-
-       private static String maskToken(String token) {
-               byte[] tokenBytes = token.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-               java.security.SecureRandom random = new java.security.SecureRandom();
-               byte[] randomBytes = new byte[tokenBytes.length];
-               random.nextBytes(randomBytes);
-               byte[] xored = new byte[tokenBytes.length];
-               for (int i = 0; i < tokenBytes.length; i++) {
-                       xored[i] = (byte) (randomBytes[i] ^ tokenBytes[i]);
-               }
-               byte[] combined = new byte[tokenBytes.length * 2];
-               System.arraycopy(randomBytes, 0, combined, 0, randomBytes.length);
-               System.arraycopy(xored, 0, combined, randomBytes.length, xored.length);
-               return java.util.Base64.getUrlEncoder().encodeToString(combined);
        }
 
        @GetMapping("/refresh")
