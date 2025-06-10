@@ -82,7 +82,7 @@ class DataImportControllerSpringBootTest {
         ImportDataRequest request = new ImportDataRequest();
         request.setData("validData".getBytes());
         request.setPassword("validPassword");
-        String response = mockMvc
+		mockMvc
                 .perform(TestHTTPClient.doPost("/api/dataimport/import").contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
@@ -100,7 +100,7 @@ class DataImportControllerSpringBootTest {
         ImportDataRequest request = new ImportDataRequest();
         request.setData("validData".getBytes());
         request.setPassword("validPassword");
-        String response = mockMvc
+		mockMvc
                 .perform(TestHTTPClient.doPost("/api/dataimport/import").contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
@@ -128,7 +128,7 @@ class DataImportControllerSpringBootTest {
         request.setData("invalidData".getBytes());
         request.setPassword("wrongPassword");
 
-        String response = mockMvc
+		mockMvc
                 .perform(TestHTTPClient.doPost("/api/dataimport/import").contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(request)))
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();

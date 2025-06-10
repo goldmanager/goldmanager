@@ -5,15 +5,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import jakarta.servlet.http.Cookie;
-import java.nio.charset.StandardCharsets;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.my.goldmanager.service.AuthenticationService;
 import com.my.goldmanager.service.UserService;
 import com.my.goldmanager.service.exception.ValidationException;
+
+import jakarta.servlet.http.Cookie;
 
 public class TestHTTPClient {
 
