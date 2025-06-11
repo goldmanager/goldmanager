@@ -22,6 +22,7 @@ class CorsPreflightSpringBootTest {
     void preflightRequestAllowed() throws Exception {
         mockMvc.perform(options("/api/items")
                 .header("Access-Control-Request-Method", "POST")
+                .header("Access-Control-Request-Headers", "x-xsrf-token")
                 .header("Origin", "http://localhost:5173"))
                 .andExpect(status().isOk());
     }
