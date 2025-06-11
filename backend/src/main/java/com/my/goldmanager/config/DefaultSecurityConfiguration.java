@@ -62,7 +62,8 @@ public class DefaultSecurityConfiguration {
                                                .ignoringRequestMatchers("/api/auth/login"))
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(
-                                               requests -> requests.requestMatchers("/api/auth/login").permitAll()
+                                               requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                                .requestMatchers("/api/auth/login").permitAll()
                                                                 .requestMatchers("/api/auth/csrf").permitAll()
                                                                 .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
                                                                 .requestMatchers("/api/**").authenticated()
