@@ -40,8 +40,14 @@ const instance = axios.create({
 
 
 instance.interceptors.request.use(async config => {
-        if (['post', 'put', 'delete', 'patch'].includes(config.method) && !getCookie('XSRF-TOKEN')) {
-                await axios.get((import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/csrf", { withCredentials: true });
+        if (['post', 'put', 'delete', 'patch'].includes(config.method)) {
+                if (!getCookie('XSRF-TOKEN')) {
+                        await axios.get((import.meta.env.VITE_API_BASE_URL ?? "") + "/api/auth/csrf", { withCredentials: true });
+                }
+                const token = getCookie('XSRF-TOKEN');
+                if (token) {
+                        config.headers['X-XSRF-TOKEN'] = token;
+                }
         }
         if (isTokenExpiringSoon()) {
                 await refreshToken();
