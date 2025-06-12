@@ -1,79 +1,179 @@
 <template>
   <div class="main">
     <div class="content">
-	<div><h1>Metals</h1></div>
-		<div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-		<div><input v-model="searchQuery" type="text" placeholder="Search by metal name"></div>
-		<table>
-			<thead>
-				<tr>
-					<th @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortBy('price')">Price (per Oz) <span v-if="currentSort === 'price'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortBy('entryDate')">Entry Date <span v-if="currentSort === 'entryDate'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-if="!editedObject">
-					<td><input v-model="newMaterial.name" type="text" placeholder="Name"></td>
-					<td><input v-model.number="newMaterial.price" type="number" placeholder="Price"></td>
+      <div><h1>Metals</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by metal name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('name')">
+              Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('price')">
+              Price (per Oz) <span v-if="currentSort === 'price'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('entryDate')">
+              Entry Date <span v-if="currentSort === 'entryDate'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="!editedObject">
+            <td>
+              <input
+                v-model="newMaterial.name"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="newMaterial.price"
+                type="number"
+                placeholder="Price"
+              >
+            </td>
 					
-					<td>
-						<el-date-picker v-model="newMaterial.entryDate"
-											type="datetime"
-											range-separator="to"
-											start-placeholder="Begin Date"
-											end-placeholder="Ende Date"
-											format="YYYY-MM-DD HH:mm"
-											value-format="YYYY-MM-DDTHH:mm:ss.SSS"
-											:clearable="false"
-											:arrow-control="true"
-											
-											/>
-					</td>
+            <td>
+              <el-date-picker
+                v-model="newMaterial.entryDate"
+                type="datetime"
+                range-separator="to"
+                start-placeholder="Begin Date"
+                end-placeholder="Ende Date"
+                format="YYYY-MM-DD HH:mm"
+                value-format="YYYY-MM-DDTHH:mm:ss.SSS"
+                :clearable="false"
+                :arrow-control="true"
+              />
+            </td>
 					
-					<td><button class="actionbutton" @click="addMaterial">Add New</button></td>
-				</tr>
-				<tr v-else>
-					<td><input v-model="editedObject.name" type="text" placeholder="Name"></td>
-					<td><input v-model.number="editedObject.price" type="number" placeholder="Price"></td>
-					<td>---</td>
-					<td>
-						<button class="actionbutton" @click="updateObject">Save</button>
-						<button class="actionbutton" @click="cancelEdit">Cancel</button>
-					</td>
-				</tr>
-				<tr :class="getHighlightClass(object.id)" v-for="object in paginatedObjects" :key="object.id">
-					<td>{{object.name}}</td>
-					<td>{{object.price}}</td>
-					<td>{{formatDate(object.entryDate) }}</td>
-					<td>
-						<button v-if="!editedObject" class="actionbutton" @click="editObject(object)">Edit</button>
-						<button class="actionbutton" v-if="editedObject != null && editedObject.id === object.id"  @click="cancelEdit">Cancel</button>
-						<button v-if="!editedObject" class="actionbutton" @click="deleteObject(object.id)">Delete</button>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="pagination" v-if="totalPages > 0">	
-			<button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-			<span>Page {{ currentPage }} of {{ totalPages }}</span>
-			<button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-			<span>(Items per page: {{pageSize}})</span>		 
-		</div>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addMaterial"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr v-else>
+            <td>
+              <input
+                v-model="editedObject.name"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <input
+                v-model.number="editedObject.price"
+                type="number"
+                placeholder="Price"
+              >
+            </td>
+            <td>---</td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updateObject"
+              >
+                Save
+              </button>
+              <button
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="object in paginatedObjects"
+            :key="object.id"
+            :class="getHighlightClass(object.id)"
+          >
+            <td>{{ object.name }}</td>
+            <td>{{ object.price }}</td>
+            <td>{{ formatDate(object.entryDate) }}</td>
+            <td>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="editObject(object)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="editedObject != null && editedObject.id === object.id"
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="deleteObject(object.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >	
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>		 
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import axios from '../axios';
+import { ElDatePicker } from 'element-plus';
+import 'element-plus/es/components/date-picker/style/css';
 
 export default {
   name: 'MetalsComponent',
+  components: {
+    ElDatePicker,
+  },
 	data() {
 		return {
 			metals: [],
-			newMaterial: { // Datenmodell für ein neues Material
+                        newMaterial: { // Data model for a new material
 				name: '',
 				price: 0,
 				entryDate: this.formatDateCustom(new Date())
@@ -90,12 +190,6 @@ export default {
 		};
 
 	},
-
-  mounted() {
-	this.currentSort=localStorage.getItem("MetalsColumnsSort")?localStorage.getItem("MetalsColumnsSort"):"name";
-	this.currentSortDir = localStorage.getItem("MetalsColumnsSortDir")?localStorage.getItem("MetalsColumnsSortDir"):"asc";
-    this.fetchMetals();
-  },
   computed: {
 	sortedObjects() {
 	let metalsCopy = [...this.metals];
@@ -136,6 +230,12 @@ export default {
 			return this.sortedObjects;
 		}
 	},
+
+  mounted() {
+	this.currentSort=localStorage.getItem("MetalsColumnsSort")?localStorage.getItem("MetalsColumnsSort"):"name";
+	this.currentSortDir = localStorage.getItem("MetalsColumnsSortDir")?localStorage.getItem("MetalsColumnsSortDir"):"asc";
+    this.fetchMetals();
+  },
 	methods: {
 		editObject(object) {
 			this.errorMessage="";

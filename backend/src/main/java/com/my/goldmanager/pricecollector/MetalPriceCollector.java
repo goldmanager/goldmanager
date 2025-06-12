@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -57,15 +57,13 @@ import lombok.Setter;
  * Collects current material prices by using
  * https://api.metalpricecollector.com/ rest api
  */
-@ConditionalOnProperty(name = "metalpricecollector.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "metalpricecollector.enabled", havingValue = "true", matchIfMissing = false)
 @Component
 @Profile({ "default", "dev" })
 public class MetalPriceCollector {
 	private static final Logger logger = LoggerFactory.getLogger(MetalPriceCollector.class);
 	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
 	private AtomicBoolean isInitialized = new AtomicBoolean(false);
-
 
 	@Autowired
 	@Getter
@@ -77,7 +75,7 @@ public class MetalPriceCollector {
 	@Setter
 	private ObjectMapper objectMapper;
 
-	@Value("${metalpricecollector.apikey}")
+	@Value("${metalpricecollector.apikey}:#{null}")
 	@Getter
 	@Setter
 	private String apiKey;
@@ -134,13 +132,13 @@ public class MetalPriceCollector {
 		return result;
 	}
 
-	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 10)
+	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedRateString = "${metalpricecollector.fetchIntervalMinutes:60}", initialDelay = 1)
 	public void getCurrentPrices() {
 
 		if (isInitialized.get()) {
 			logger.debug("Updating prices");
 			Map<String, String> mappingSettings = getMetalMappings();
-			if (!mappingSettings.isEmpty() && apiKey != null) {
+			if (!mappingSettings.isEmpty() && apiKey != null && !apiKey.isBlank()) {
 				try (HttpClient httpClient = webClientBuilder.build()) {
 					List<Material> materials = materialService.list();
 
@@ -150,7 +148,7 @@ public class MetalPriceCollector {
 							.build();
 					HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 					String body = response.body();
-					if (response.statusCode() == 200) {
+                                        if (response.statusCode() == 200) {
 						LatestPrices latestPrices = objectMapper.readValue(body, LatestPrices.class);
 						if (latestPrices.isSuccess() && latestPrices.getRates() != null) {
 
@@ -161,8 +159,9 @@ public class MetalPriceCollector {
 											latestPrices.getRates().get(currency + mappingSettings.get(m.getName())),
 											entryDate));
 						}
-					} else {
-						logger.error("Could not fetch current prices, response code: {}, body:{}", body);
+                                        } else {
+                                                logger.error("Could not fetch current prices, response code: {}, body: {}",
+                                                                response.statusCode(), body);
 					}
 				} catch (IOException | InterruptedException e) {
 					logger.error("Error while retreiving current material price", e);
@@ -200,7 +199,8 @@ public class MetalPriceCollector {
 
 	public void init() {
 		Map<String, String> mappingSettings = getMetalMappings();
-		if (!mappingSettings.isEmpty() && apiKey != null && fetchHistoryDays > 0 && fetchHistoryDays <= 365) {
+		if (!mappingSettings.isEmpty() && apiKey != null && !apiKey.isBlank() && fetchHistoryDays > 0
+				&& fetchHistoryDays <= 365) {
 
 			try (HttpClient httpClient = webClientBuilder.build()) {
 

@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ public class DevWebConfig implements WebMvcConfigurer {
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 
-		registry.addMapping("/**").allowedOrigins("http://localhost:8081", "http://localhost.localdomain:8081")
-				.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*").allowCredentials(true);
+                registry.addMapping("/**")
+                                .allowedOrigins("http://localhost:8081", "http://localhost.localdomain:8081", "http://localhost:5173",
+                                                "http://localhost.localdomain:5173")
+                                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*").allowCredentials(true);
 
 	}
 

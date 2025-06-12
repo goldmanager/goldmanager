@@ -1,36 +1,36 @@
 <template>
   <div id="app">
-    <NavBar /> <!-- Füge das Navigationsmenü hinzu -->
-    <router-view></router-view> <!-- Zeigt den Inhalt der aktuellen Route an -->
+    <NavBar /> <!-- Add the navigation menu -->
+    <router-view /> <!-- Displays the content of the current route -->
   </div>
 </template>
 
 <script>
-import NavBar from './components/NavBar.vue'; // Importiere die NavBar-Komponente
+import NavBar from './components/NavBar.vue'; // Import the NavBar component
 
 export default {
   name: 'App',
   components: {
-    NavBar // Registriere die NavBar-Komponente
+    NavBar // Register the NavBar component
   }
 };
 </script>
 
 <style>
 .main {
-  background-image: url('~@/assets/logo.png'); /* Verwende das Bild als Hintergrund */
+  background-image: url('@/assets/logo.png'); /* Use the logo as background */
   background-size: cover;
-  background-position: center; /* Zentriert das Bild */
-  width: 100%; /* Breite des Formulars */
+  background-position: center; /* Center the image */
+  width: 100%; /* Width of the form */
   min-height: 100vh;
-  height: 100%; /* Höhe entsprechend der Bildschirmgröße */
+  height: 100%; /* Height according to the screen size */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .content {
-  background: rgba(255, 255, 255, 0.8); /* Leicht transparenter weißer Hintergrund für das Formular */
+  background: rgba(255, 255, 255, 0.8); /* Slightly transparent white background for the form */
   padding: 10px;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

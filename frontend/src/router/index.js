@@ -1,14 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Prices from '../components/PricesComponent.vue';
-import UserLogin from '../components/LoginComponent.vue';
-import Metals from '../components/MetalsComponent.vue';
-import Units from '../components/UnitsComponent.vue';
-import ItemTypes from '../components/ItemTypes.vue';
-import Items from '../components/ItemsComponent.vue';
-import Users from '../components/UsersComponent.vue';
-import ItemStorages from '../components/ItemStorages.vue';
-import PriceHistory from '../components/PriceHistoryComponent.vue'
-// Erstelle den Router
+import { isAuthenticated } from '@/utils/session';
+const Prices = () => import('../components/PricesComponent.vue');
+const UserLogin = () => import('../components/LoginComponent.vue');
+const Metals = () => import('../components/MetalsComponent.vue');
+const Units = () => import('../components/UnitsComponent.vue');
+const ItemTypes = () => import('../components/ItemTypes.vue');
+const Items = () => import('../components/ItemsComponent.vue');
+const Users = () => import('../components/UsersComponent.vue');
+const ItemStorages = () => import('../components/ItemStorages.vue');
+const PriceHistory = () => import('../components/PriceHistoryComponent.vue');
+const DataExport = () => import('../components/DataExportComponent.vue');
+const DataImport = () => import('../components/DataImportComponent.vue');
+// Create the router
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -20,24 +23,26 @@ const router = createRouter({
 	{ path: '/itemStorages', component: ItemStorages, meta: { requiresAuth: true } },
     { path: '/items', component: Items, meta: { requiresAuth: true } },
     { path: '/users', component: Users, meta: { requiresAuth: true } },
-	{ path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}}
-    // Weitere Routen hinzufügen
+        { path: '/priceHistory', component: PriceHistory, meta:{requiresAuth: true}},
+    { path: '/dataexport', component: DataExport, meta: { requiresAuth: true } },
+    { path: '/dataimport', component: DataImport, meta: { requiresAuth: true } }
+    // Add additional routes here
   ]
 });
 
-// Router-Guard zur Überprüfung des Authentifizierungsstatus
+// Router guard to check the authentication status
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!sessionStorage.getItem('jwt-token'); // Prüfe, ob der Benutzer authentifiziert ist
+  const authenticated = isAuthenticated();
 
-  // Wenn die Route ein Authentifizierungserfordernis hat
+  // If the route requires authentication
   if (to.meta.requiresAuth) {
-    if (isAuthenticated) {
-      next(); // Benutzer ist authentifiziert, fahre fort zur Route
+    if (authenticated) {
+      next(); // User is authenticated, proceed to the route
     } else {
-      next('/login'); // Benutzer ist nicht authentifiziert, leite zur Login-Seite weiter
+      next('/login'); // User is not authenticated, redirect to the login page
     }
   } else {
-    next(); // Keine Authentifizierung erforderlich, fahre fort zur Route
+    next(); // No authentication required, continue to the route
   }
 });
 

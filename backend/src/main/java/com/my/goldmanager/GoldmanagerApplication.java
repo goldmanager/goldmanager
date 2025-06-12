@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,12 +24,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.support.DatabaseStartupValidator;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import jakarta.persistence.EntityManagerFactory;
 import liquibase.integration.spring.SpringLiquibase;
 
 @SpringBootApplication
 @EnableScheduling
+@EnableAsync
 public class GoldmanagerApplication {
 
 	public static void main(String[] args) {

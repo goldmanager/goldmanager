@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class ConfigInitializationRunner implements ApplicationRunner {
 			unitService.save(unit);
 			logger.info("Created initial Unit 'Oz'");
 		} else {
-			logger.info("Units existing. Skipping creation of material 'Oz'");
+			logger.info("Units existing. Skipping creation of unit 'Oz'");
 		}
 
 		if (metalsMetalApisPriceCollector != null) {

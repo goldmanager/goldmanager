@@ -1,49 +1,143 @@
 <template>
   <div class="main">
     <div class="content">
-	<div><h1>Item Storages</h1></div>
-		<div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-		<div><input v-model="searchQuery" type="text" placeholder="Search by Item Storage name"></div>
-		<table>
-			<thead>
-				<tr>
-					<th @click="sortBy('name')">Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
-					<th @click="sortBy('description')">Description <span v-if="currentSort === 'description'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span></th>
+      <div><h1>Item Storages</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by Item Storage name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('name')">
+              Name <span v-if="currentSort === 'name'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th @click="sortBy('description')">
+              Description <span v-if="currentSort === 'description'">{{ currentSortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
 					
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-if="!editedObject">
-					<td><input v-model="newItemStorage.name" type="text" placeholder="Name"></td>
-					<td><textarea v-model="newItemStorage.description" rows="4" cols="70"/></td>
-					<td><button class="actionbutton" @click="addItemStorage">Add New</button></td>
-				</tr>
-				<tr v-else>
-					<td><input v-model="editedObject.name" type="text" placeholder="Name"></td>
-					<td><textarea id="editdescription" v-model="editedObject.description" rows="4" cols="70"/></td>
-					<td>
-						<button class="actionbutton" @click="updateObject">Save</button>
-						<button class="actionbutton" @click="cancelEdit">Cancel</button>
-					</td>
-				</tr>
-				<tr :class="getHighlightClass(object.id)" v-for="object in paginatedObjects" :key="object.id">
-					<td>{{object.name}}</td>
-					<td>{{ object.description && object.description.length> 50? object.description.substring(0,50)+'...': object.description?object.description:'' }}</td>
-					<td>
-						<button v-if="!editedObject" class="actionbutton" @click="editObject(object)">Edit</button>
-						<button class="actionbutton" v-if="editedObject != null && editedObject.id === object.id"  @click="cancelEdit">Cancel</button>
-						<button v-if="!editedObject" class="actionbutton" @click="deleteObject(object.id)">Delete</button>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="pagination" v-if="totalPages > 0">	
-			<button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-			<span>Page {{ currentPage }} of {{ totalPages }}</span>
-			<button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-			<span>(Items per page: {{pageSize}})</span>		 
-		</div>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="!editedObject">
+            <td>
+              <input
+                v-model="newItemStorage.name"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <textarea
+                v-model="newItemStorage.description"
+                rows="4"
+                cols="70"
+              />
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addItemStorage"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr v-else>
+            <td>
+              <input
+                v-model="editedObject.name"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <textarea
+                id="editdescription"
+                v-model="editedObject.description"
+                rows="4"
+                cols="70"
+              />
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updateObject"
+              >
+                Save
+              </button>
+              <button
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="object in paginatedObjects"
+            :key="object.id"
+            :class="getHighlightClass(object.id)"
+          >
+            <td>{{ object.name }}</td>
+            <td>{{ object.description && object.description.length> 50? object.description.substring(0,50)+'...': object.description?object.description:'' }}</td>
+            <td>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="editObject(object)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="editedObject != null && editedObject.id === object.id"
+                class="actionbutton"
+                @click="cancelEdit"
+              >
+                Cancel
+              </button>
+              <button
+                v-if="!editedObject"
+                class="actionbutton"
+                @click="deleteObject(object.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >	
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>		 
+      </div>
     </div>
   </div>
 </template>
@@ -56,7 +150,7 @@ export default {
 	data() {
 		return {
 			itemStorages: [],
-			newItemStorage: { // Datenmodell für ein neues Material
+                        newItemStorage: { // Data model for a new material
 				name: '',
 				description: ''
 			},
@@ -72,12 +166,6 @@ export default {
 		};
 
 	},
-
-  mounted() {
-	this.currentSort=localStorage.getItem("ItemSoragesColumnsSort")?localStorage.getItem("ItemSoragesColumnsSort"):"name";
-	this.currentSortDir = localStorage.getItem("ItemSoragesColumnsSortDir")?localStorage.getItem("ItemSoragesColumnsSortDir"):"asc";
-    this.fetchData();
-  },
   computed: {
 	sortedObjects() {
 	let result = [...this.itemStorages];
@@ -118,6 +206,12 @@ export default {
 			return this.sortedObjects;
 		}
 	},
+
+  mounted() {
+	this.currentSort=localStorage.getItem("ItemSoragesColumnsSort")?localStorage.getItem("ItemSoragesColumnsSort"):"name";
+	this.currentSortDir = localStorage.getItem("ItemSoragesColumnsSortDir")?localStorage.getItem("ItemSoragesColumnsSortDir"):"asc";
+    this.fetchData();
+  },
 	methods: {
 		editObject(object) {
 			this.errorMessage="";

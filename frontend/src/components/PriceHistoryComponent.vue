@@ -1,52 +1,81 @@
 <template>
   <div class="main">
     <div class="content">
-    <div><h1>Price History</h1></div>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+      <div><h1>Price History</h1></div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
    
 	
-    <table v-if="metals.length>0"> 
-      <thead>
-        <tr>
-          <th>Select Metal</th>
-		  <th>Date Range</th>
-		  <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-      <tr>
-     
-        <td>
-        <select id="metals" v-model="currentMetal" @change="setCurrentFilter($event)" >
-          <option v-for="metal in metals"  :key="metal.id" :value="metal.id">{{ metal.name }}</option>
-        </select>
-        </td>
-		<td>
-			<el-date-picker v-model="dateRange"
-					type="datetimerange"
-					range-separator="to"
-					start-placeholder="Begin Date"
-					end-placeholder="Ende Date"
-					format="YYYY-MM-DD HH:mm:ss"
-					value-format="YYYY-MM-DDTHH:mm:ss.SSS"
-					@change="dateChanged()"
-					:clearable="false"
-					:unlink-panels="true"
-					:shortcuts="dateTimeShortcuts"
-					:arrow-control="true"
-					
-					/>
-		</td>
-	    <td>
-			<button v-if="priceHistories.length>0" class="actionbutton"  @click="deleteHistoryInRange()">Delete Selected Price History</button>
-			<button class="actionbutton"  @click="deleteMetalhistory()">Delete complete Metal Price History</button>
-		</td>
-      </tr>
-      </tbody>
+      <table v-if="metals.length>0"> 
+        <thead>
+          <tr>
+            <th>Select Metal</th>
+            <th>Date Range</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <select
+                id="metals"
+                v-model="currentMetal"
+                @change="setCurrentFilter($event)"
+              >
+                <option
+                  v-for="metal in metals"
+                  :key="metal.id"
+                  :value="metal.id"
+                >
+                  {{ metal.name }}
+                </option>
+              </select>
+            </td>
+            <td>
+              <el-date-picker
+                v-model="dateRange"
+                type="datetimerange"
+                range-separator="to"
+                start-placeholder="Begin Date"
+                end-placeholder="Ende Date"
+                format="YYYY-MM-DD HH:mm:ss"
+                value-format="YYYY-MM-DDTHH:mm:ss.SSS"
+                :clearable="false"
+                :unlink-panels="true"
+                :shortcuts="dateTimeShortcuts"
+                :arrow-control="true"
+                @change="dateChanged()"
+              />
+            </td>
+            <td>
+              <button
+                v-if="priceHistories.length>0"
+                class="actionbutton"
+                @click="deleteHistoryInRange()"
+              >
+                Delete Selected Price History
+              </button>
+              <button
+                class="actionbutton"
+                @click="deleteMetalhistory()"
+              >
+                Delete complete Metal Price History
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
-	  <price-chart v-if="priceHistories.length>0" v-model="priceHistories"/>
-	   <div v-else >No Price History available in selected date range.</div>
-   
+      <price-chart
+        v-if="priceHistories.length>0"
+        v-model="priceHistories"
+      />
+      <div v-else>
+        No Price History available in selected date range.
+      </div>
     </div>
   </div>
 </template>
@@ -55,11 +84,14 @@
 /*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
 import axios from '../axios';
 import PriceChart from './PriceChart.vue';
+import { ElDatePicker } from 'element-plus';
+import 'element-plus/es/components/date-picker/style/css';
 export default {
   name: 'PricesComponent',
   components: {
-        PriceChart,
-      },
+    PriceChart,
+    ElDatePicker,
+  },
   data() {
     return {
 		errorMessage:null,
@@ -70,12 +102,6 @@ export default {
 
     };
 
-  },
- 
-
-  mounted() {
-	this.currentMetal = this.getCurrentMetal();
-	this.fetchData();
   },
 
 computed:{ 
@@ -142,7 +168,13 @@ computed:{
 			
 		];
 	}
-},  
+},
+ 
+
+  mounted() {
+	this.currentMetal = this.getCurrentMetal();
+	this.fetchData();
+  },  
 methods: {
 	
 	formatDate(date) {

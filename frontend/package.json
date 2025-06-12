@@ -1,17 +1,19 @@
 {
   "name": "goldmanager",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint --ext .js,.vue src",
+    "test": "vitest"
   },
   "dependencies": {
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
     "core-js": "^3.8.3",
     "element-plus": "^2.8.0",
+    "mpm": "^0.0.1",
     "vue": "^3.2.13",
     "vue-chartjs": "^5.3.1",
     "vue-router": "^4.4.0",
@@ -20,25 +22,16 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "eslint": "^8.56.2",
-    "eslint-plugin-vue": "^9.27.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
+    "@babel/preset-env": "^7.24.5",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vitest/coverage-v8": "^3.2.3",
+    "@vue/test-utils": "^2.2.7",
+    "eslint": "^9.28.0",
+    "eslint-plugin-vue": "^10.2.0",
+    "jsdom": "^26.1.0",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.2",
+    "vue-eslint-parser": "^10.1.3"
   },
   "browserslist": [
     "> 1%",

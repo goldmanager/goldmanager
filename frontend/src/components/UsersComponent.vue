@@ -1,49 +1,148 @@
 <template>
   <div class="main">
     <div class="content">
-    <div><h1>Users</h1></div>
-    <div v-if="statusMessage">{{ statusMessage }}</div>
-    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-	<div><input v-model="searchQuery" type="text" placeholder="Search by user name"></div>
-    <table >
-      <thead>
-        <tr>
-          <th  @click="sortBy('username')">Name {{ currentSortDir === 'asc' ? '▲' : '▼' }}</th>
-          <th>Password</th>
-          <th>Password (Confirm)</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input v-model="newUser.username" type="text" placeholder="Name"></td>
-          <td><input v-model="newUserPasword" type="password" placeholder="Password"></td>
-          <td><input v-model="newUserPaswordConfirm" type="password" placeholder="Password (Confirm)"></td>
+      <div><h1>Users</h1></div>
+      <div v-if="statusMessage">
+        {{ statusMessage }}
+      </div>
+      <div
+        v-if="errorMessage"
+        class="error"
+      >
+        {{ errorMessage }}
+      </div>
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search by user name"
+        >
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th @click="sortBy('username')">
+              Name {{ currentSortDir === 'asc' ? '▲' : '▼' }}
+            </th>
+            <th>Password</th>
+            <th>Password (Confirm)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <input
+                v-model="newUser.username"
+                type="text"
+                placeholder="Name"
+              >
+            </td>
+            <td>
+              <input
+                v-model="newUserPasword"
+                type="password"
+                placeholder="Password"
+              >
+            </td>
+            <td>
+              <input
+                v-model="newUserPaswordConfirm"
+                type="password"
+                placeholder="Password (Confirm)"
+              >
+            </td>
 
-          <td>
-            <button class="actionbutton" @click="addUser()">Add New</button>
-          </td>
-
-        </tr>
-        <tr :class="getHighlightClass(userInfo.username)" v-for="userInfo in paginatedObjects" :key="userInfo.username">
-          <td><input v-model="userInfo.username" type="text" disabled=true/></td>
-          <td><input v-model="userInfo.password" type="password" placeholder="Password"/></td>
-          <td><input v-model="userInfo.passwordConfirm" type="password" placeholder="Password (Confirm)"/></td>
-          <td>
-            <button class="actionbutton" @click="updatePassword(userInfo)">Update Password</button>
-            <button :class="getButtonClass(isUserCurrentUser(userInfo.username))" @click="deleteUser(userInfo.username)" :disabled="isUserCurrentUser(userInfo.username)">Delete</button>
-            <button v-if="userInfo.active" :class="getButtonClass(isUserCurrentUser(userInfo.username))" @click="setUserStatus(false, userInfo)" :disabled="isUserCurrentUser(userInfo.username)">Disable</button>
-            <button v-else :class="getButtonClass(isUserCurrentUser(userInfo.username))" @click="setUserStatus(true, userInfo)" :disabled="isUserCurrentUser(userInfo.username)">Enable</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-		<div class="pagination" v-if="totalPages > 0">	
-				<button :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-				<span>Page {{ currentPage }} of {{ totalPages }}</span>
-				<button  :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'" @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-				<span>(Items per page: {{pageSize}})</span>
-		</div>
+            <td>
+              <button
+                class="actionbutton"
+                @click="addUser()"
+              >
+                Add New
+              </button>
+            </td>
+          </tr>
+          <tr
+            v-for="userInfo in paginatedObjects"
+            :key="userInfo.username"
+            :class="getHighlightClass(userInfo.username)"
+          >
+            <td>
+              <input
+                v-model="userInfo.username"
+                type="text"
+                disabled="true/"
+              >
+            </td>
+            <td>
+              <input
+                v-model="userInfo.password"
+                type="password"
+                placeholder="Password"
+              >
+            </td>
+            <td>
+              <input
+                v-model="userInfo.passwordConfirm"
+                type="password"
+                placeholder="Password (Confirm)"
+              >
+            </td>
+            <td>
+              <button
+                class="actionbutton"
+                @click="updatePassword(userInfo)"
+              >
+                Update Password
+              </button>
+              <button
+                :class="getButtonClass(isUserCurrentUser(userInfo.username))"
+                :disabled="isUserCurrentUser(userInfo.username)"
+                @click="deleteUser(userInfo.username)"
+              >
+                Delete
+              </button>
+              <button
+                v-if="userInfo.active"
+                :class="getButtonClass(isUserCurrentUser(userInfo.username))"
+                :disabled="isUserCurrentUser(userInfo.username)"
+                @click="setUserStatus(false, userInfo)"
+              >
+                Disable
+              </button>
+              <button
+                v-else
+                :class="getButtonClass(isUserCurrentUser(userInfo.username))"
+                :disabled="isUserCurrentUser(userInfo.username)"
+                @click="setUserStatus(true, userInfo)"
+              >
+                Enable
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div
+        v-if="totalPages > 0"
+        class="pagination"
+      >	
+        <button
+          :class="currentPage === 1 ?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          :class="currentPage === totalPages?'pagingButton_disabled':'pagingButton'"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+        >
+          Next
+        </button>
+        <span>(Items per page: {{ pageSize }})</span>
+      </div>
     </div>
   </div>
 </template>
@@ -51,6 +150,7 @@
 <script>
 /*eslint no-mixed-spaces-and-tabs: ["error", "smart-tabs"]*/
 import axios from '../axios';
+import { getCurrentUsername } from '@/utils/session';
 
 export default {
   name: 'UsersComponent',
@@ -74,11 +174,6 @@ export default {
 	  highlightedType: ''
     };
 
-  },
-
-  mounted() {
-	this.currentSortDir = localStorage.getItem("UsersColumnsSortDir")?localStorage.getItem("UsersColumnsSortDir"):"asc";
-    this.fetchData();
   },
   computed: {
 	sortedObjects() {
@@ -122,6 +217,11 @@ export default {
 		return this.sortedObjects;
 	}
 },
+
+  mounted() {
+	this.currentSortDir = localStorage.getItem("UsersColumnsSortDir")?localStorage.getItem("UsersColumnsSortDir"):"asc";
+    this.fetchData();
+  },
   methods: {
 	sortBy(column){
 		if (this.currentSort === column) {
@@ -157,7 +257,7 @@ export default {
 		}, 3000);
 	},
   isUserCurrentUser(username){
-   return sessionStorage.getItem("username") === username;
+   return getCurrentUsername() === username;
   },
   getButtonClass(isCurrentUser){
     if(isCurrentUser){

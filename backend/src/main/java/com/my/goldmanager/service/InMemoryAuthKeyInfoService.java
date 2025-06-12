@@ -1,4 +1,4 @@
-/** Copyright 2024 fg12111
+/** Copyright 2025 fg12111
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -98,16 +98,16 @@ public class InMemoryAuthKeyInfoService implements AuthKeyInfoService {
 
 	private void addKeyIdForUserName(String username, String keyId) {
 		synchronized (userKeyIDMap) {
-			List<String> keyIds = userKeyIDMap.get(username);
+                       List<String> keyIds = userKeyIDMap.get(username);
 
-			if (keyIds == null) {
+                       if (keyIds == null) {
 
-				keyIds = new LinkedList<String>();
+                               keyIds = new LinkedList<String>();
 
-				userKeyIDMap.put(username, new LinkedList<String>());
+                               userKeyIDMap.put(username, keyIds);
 
-			}
-			userKeyIDMap.get(username).addFirst(keyId);
+                       }
+                       keyIds.addFirst(keyId);
 		}
 
 	}
@@ -174,11 +174,11 @@ public class InMemoryAuthKeyInfoService implements AuthKeyInfoService {
 			List<Entry<String, KeyWrapper>> forRemoval = secretKeys.entrySet().stream()
 					.filter(entry -> entry.getValue().expiresAfter.before(expirationDate)).collect(Collectors.toList());
 
-			forRemoval.stream().forEach(entry -> {
-				secretKeys.remove(entry.getKey());
-				removeKeyIdForUserName(entry.getKey(), entry.getValue().userName);
-			});
-		}
+                        forRemoval.stream().forEach(entry -> {
+                                secretKeys.remove(entry.getKey());
+                                removeKeyIdForUserName(entry.getValue().userName, entry.getKey());
+                        });
+                }
 
 	}
 

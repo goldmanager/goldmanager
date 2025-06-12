@@ -65,7 +65,7 @@ public class UserServiceControllerSpringBootTest {
 	@Test
 	public void testCreateUser() throws Exception {
 		CreateUserRequest createUserRequest = new CreateUserRequest();
-		createUserRequest.setPassword("MyPass");
+		createUserRequest.setPassword("MyPass12345");
 		createUserRequest.setUsername("myUser");
 
 		mockMvc.perform(TestHTTPClient.doPost("/userService").contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +82,7 @@ public class UserServiceControllerSpringBootTest {
 	@Test
 	public void testDeleteUser() throws Exception {
 
-		userService.create("MyUser", "MyPass");
+		userService.create("MyUser", "MyPass12345");
 		mockMvc.perform(TestHTTPClient.doDelete("/userService/deleteuser/MyUser")).andExpect(status().isNoContent());
 	}
 
@@ -94,7 +94,7 @@ public class UserServiceControllerSpringBootTest {
 		
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not delete them self.", errorResponse.getMessage());
+		assertEquals("Users must not delete themselves.", errorResponse.getMessage());
 
 	}
 
@@ -172,7 +172,7 @@ public class UserServiceControllerSpringBootTest {
 		ErrorResponse errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 		
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not activate or deactivate them self.", errorResponse.getMessage());
+		assertEquals("Users must not activate or deactivate themselves.", errorResponse.getMessage());
 
 		updateUserStatusRequest.setActive(false);
 		body = mockMvc.perform(TestHTTPClient.doPut("/userService/setStatus/" +  TestHTTPClient.username)
@@ -182,7 +182,7 @@ public class UserServiceControllerSpringBootTest {
 		errorResponse = objectMapper.readValue(body, ErrorResponse.class);
 
 		assertEquals(400, errorResponse.getStatus());
-		assertEquals("Users must not activate or deactivate them self.", errorResponse.getMessage());
+		assertEquals("Users must not activate or deactivate themselves.", errorResponse.getMessage());
 	}
 	@Test
 	public void testUpdateUserPasswordInvalid() throws Exception {
@@ -245,7 +245,7 @@ public class UserServiceControllerSpringBootTest {
 		userLoginRepository.save(userLogin);
 
 		CreateUserRequest createUserRequest = new CreateUserRequest();
-		createUserRequest.setPassword("MyPass");
+		createUserRequest.setPassword("MyPass12345");
 		createUserRequest.setUsername("myUser");
 
 		String body = mockMvc
