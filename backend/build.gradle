@@ -11,7 +11,7 @@ plugins {
 import java.util.Properties
 
 group = 'de.goldmanager'
-version = '1.0.0'
+version = '1.0.1'
 compileJava.options.encoding = 'UTF-8'
 
 task generateVersionProperties {
