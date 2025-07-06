@@ -2,6 +2,8 @@
 
 This project uses several open source dependencies. The following table lists key packages and their licenses.
 
+The package versions were updated to the latest stable releases as of July 2025.
+
 | Component | License |
 |-----------|--------|
 | Spring Boot and modules | Apache-2.0 |
