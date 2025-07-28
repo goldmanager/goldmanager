@@ -101,7 +101,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.session:spring-session-core'
-    implementation 'commons-codec:commons-codec:1.18.0'
+    implementation 'commons-codec:commons-codec:1.19.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     implementation 'com.github.zafarkhaja:java-semver:0.10.2'
 
