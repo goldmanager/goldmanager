@@ -6,6 +6,22 @@ This repository contains two sub-projects:
 * **frontend/** – Vue 3 SPA built with Node (tested with Node 20).
   Use Node.js 20 for local development to match the CI environment.
 
+## Response Protocol
+
+Each answer must contain two clearly separated roles:
+
+1. **Developer** ("Entwickler") – Implements the requested changes or
+   explains how they were addressed. Prefix the section with
+   `### Entwickler:`.
+2. **Reviewer** – Reviews the developer's work for correctness, clarity,
+   maintainability, best practices and potential issues. Prefix the section
+   with `### Reviewer:`. If problems are found, explicitly request
+   improvements and hand control back to the developer for the next
+   iteration.
+
+Repeat this developer-reviewer cycle until the reviewer has no further
+comments.
+
 ## Build and Test Instructions
 
 ### Backend
