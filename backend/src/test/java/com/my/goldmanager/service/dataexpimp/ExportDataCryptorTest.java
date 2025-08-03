@@ -131,12 +131,13 @@ class ExportDataCryptorTest {
 		// Corrupt the payload
 		encryptedData[encryptedData.length - 1] ^= 0xFF;
 
-		Exception exception = assertThrows(ValidationException.class, () -> {
-			exportDataCryptor.decrypt(encryptedData, encryptionPassword);
-		});
+                Exception exception = assertThrows(PasswordValidationException.class, () -> {
+                        exportDataCryptor.decrypt(encryptedData, encryptionPassword);
+                });
 
-		assertEquals("Corrupted payload", exception.getMessage());
-	}
+                assertEquals("Decryption of data has failed, maybe the provided password is incorrect?",
+                                exception.getMessage());
+        }
 
 	// Helper method to create data with an invalid header
 	private byte[] createDataWithInvalidHeader(int headerLength) throws IOException {
