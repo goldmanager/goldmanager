@@ -147,13 +147,17 @@ public class DataImporter {
 		logger.info("Entity import completed successfully.");
 	}
 
-	private <T> void saveInBatches(JpaRepository<T, ?> repository, List<T> entities, int batchSize) {
-		for (int i = 0; i < entities.size(); i += batchSize) {
-			int end = Math.min(i + batchSize, entities.size());
-			List<T> batch = entities.subList(i, end);
-			repository.saveAll(batch);
-		}
-	}
+        private <T> void saveInBatches(JpaRepository<T, ?> repository, List<T> entities, int batchSize) {
+                if (entities == null || entities.isEmpty()) {
+                        return;
+                }
+                for (int i = 0; i < entities.size(); i += batchSize) {
+                        int end = Math.min(i + batchSize, entities.size());
+                        List<T> batch = entities.subList(i, end);
+                        repository.saveAll(batch);
+                        repository.flush();
+                }
+        }
 
 	private ExportEntities deserializeEntities(ExportData data) throws ImportDataException {
 

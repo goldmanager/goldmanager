@@ -75,37 +75,39 @@ public class ExportDataCryptor {
 			throw new PasswordValidationException(ve.getMessage(), ve);
 		}
 
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                byte[] salt = DataExportImportCryptoUtil.generateSalt();
+                byte[] iv = DataExportImportCryptoUtil.generateIV();
 
-		byte[] salt = DataExportImportCryptoUtil.generateSalt();
-		byte[] iv = DataExportImportCryptoUtil.generateIV();
+                SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
+                Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.ENCRYPT_MODE);
 
-		SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
-		Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-		Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.ENCRYPT_MODE);
+                byte[] payload = objectMapper.writeValueAsBytes(exportData);
+                ByteArrayOutputStream compressedPayload = new ByteArrayOutputStream();
+                try (DeflaterOutputStream deflaterStream =
+                                new DeflaterOutputStream(compressedPayload, new Deflater(Deflater.BEST_COMPRESSION))) {
+                        deflaterStream.write(payload);
+                }
+                byte[] compressedBytes = compressedPayload.toByteArray();
 
-		ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
-		try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
-			// Adding magic bytes to ensure correct encryption:
-			cout.write(body_start);
-			byte[] payload = objectMapper.writeValueAsBytes(exportData);
-			cout.write(DataExportImportUtil.longToByteArray(payload.length));
-			cout.write(payload);
-			cout.flush();
-		}
-		try (DeflaterOutputStream deflaterOutPutStream = new DeflaterOutputStream(bos, deflater)) {
-			deflaterOutPutStream.write(header_start);
-			byte[] encryptedDataPayload = encryptedData.toByteArray();
-			deflaterOutPutStream.write(DataExportImportUtil.longToByteArray(encryptedDataPayload.length));
-			deflaterOutPutStream.write(salt);
-			deflaterOutPutStream.write(iv);
-			deflaterOutPutStream.write(encryptedDataPayload);
+                ByteArrayOutputStream encryptedData = new ByteArrayOutputStream();
+                try (CipherOutputStream cout = new CipherOutputStream(encryptedData, cipher)) {
+                        // Adding magic bytes to ensure correct encryption:
+                        cout.write(body_start);
+                        cout.write(DataExportImportUtil.longToByteArray(compressedBytes.length));
+                        cout.write(compressedBytes);
+                        cout.flush();
+                }
 
-			deflaterOutPutStream.flush();
-		}
-
-		return bos.toByteArray();
-	}
+                ByteArrayOutputStream bos = new ByteArrayOutputStream(
+                                header_start.length + 8 + salt.length + iv.length + encryptedData.size());
+                bos.write(header_start);
+                byte[] encryptedDataPayload = encryptedData.toByteArray();
+                bos.write(DataExportImportUtil.longToByteArray(encryptedDataPayload.length));
+                bos.write(salt);
+                bos.write(iv);
+                bos.write(encryptedDataPayload);
+                return bos.toByteArray();
+        }
 
 	/**
 	 * Decrypts the given byte array using the provided encryption password.
@@ -115,72 +117,89 @@ public class ExportDataCryptor {
 	 * @return The decrypted ExportData object.
 	 * @throws Exception If an error occurs during decryption.
 	 */
-	public ExportData decrypt(byte[] data, String encryptionPassword) throws Exception {
-		ByteArrayInputStream bis = new ByteArrayInputStream(data);
-		try (InflaterInputStream inflaterInputStream = new InflaterInputStream(bis)) {
+        public ExportData decrypt(byte[] data, String encryptionPassword) throws Exception {
+                ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                java.io.InputStream dataStream;
+                bis.mark(header_start.length);
+                byte[] possibleHeader = bis.readNBytes(header_start.length);
+                bis.reset();
+                if (Arrays.equals(possibleHeader, header_start)) {
+                        dataStream = bis;
+                } else {
+                        dataStream = new InflaterInputStream(bis);
+                }
+                try {
 
-			byte[] header = new byte[header_start.length];
-			int headerlength = inflaterInputStream.read(header);
-			if (headerlength != header_start.length) {
-				throw new ValidationException("Invalid header length");
-			}
-			if (Arrays.equals(header, header_start) == false) {
-				throw new ValidationException("Invalid header format");
-			}
+                        byte[] header = new byte[header_start.length];
+                        int headerlength = dataStream.read(header);
+                        if (headerlength != header_start.length) {
+                                throw new ValidationException("Invalid header length");
+                        }
+                        if (!Arrays.equals(header, header_start)) {
+                                throw new ValidationException("Invalid header format");
+                        }
 
-			byte[] encryptedDataSizeBytes = new byte[8];
-			DataExportImportUtil.readFully(inflaterInputStream, encryptedDataSizeBytes);
-			long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
+                        byte[] encryptedDataSizeBytes = new byte[8];
+                        DataExportImportUtil.readFully(dataStream, encryptedDataSizeBytes);
+                        long encryptedDataSize = DataExportImportUtil.byteArrayToLong(encryptedDataSizeBytes);
 
-			if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
-				throw new ValidationException("Encrypted payload exceeds configured maximum size");
-			}
+                        if (encryptedDataSize > maxEncryptedDataSize || encryptedDataSize > Integer.MAX_VALUE) {
+                                throw new ValidationException("Encrypted payload exceeds configured maximum size");
+                        }
 
-			byte[] salt = new byte[16];
-			DataExportImportUtil.readFully(inflaterInputStream, salt);
+                        byte[] salt = new byte[16];
+                        DataExportImportUtil.readFully(dataStream, salt);
 
-			byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
-			DataExportImportUtil.readFully(inflaterInputStream, iv);
+                        byte[] iv = new byte[DataExportImportCryptoUtil.IV_LENGTH];
+                        DataExportImportUtil.readFully(dataStream, iv);
 
-			byte[] encryptedData = new byte[(int) encryptedDataSize];
-			DataExportImportUtil.readFully(inflaterInputStream, encryptedData);
+                        byte[] encryptedData = new byte[(int) encryptedDataSize];
+                        DataExportImportUtil.readFully(dataStream, encryptedData);
 
-			SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
-			Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.DECRYPT_MODE);
+                        SecretKey key = DataExportImportCryptoUtil.generateKeyFromPassword(encryptionPassword, salt);
+                        Cipher cipher = DataExportImportCryptoUtil.getCipher(key, iv, Cipher.DECRYPT_MODE);
 
-			ByteArrayInputStream encryptedDataStream = new ByteArrayInputStream(encryptedData);
-			try (CipherInputStream cipherInputStream = new CipherInputStream(encryptedDataStream, cipher)) {
+                        ByteArrayInputStream encryptedDataStream = new ByteArrayInputStream(encryptedData);
+                        try (CipherInputStream cipherInputStream = new CipherInputStream(encryptedDataStream, cipher)) {
 
-				byte[] bodyStart = new byte[body_start.length];
-				int bodyHeaderLength = cipherInputStream.read(bodyStart);
-				if (bodyHeaderLength != body_start.length) {
-					throw new ValidationException("Invalid body header length");
-				}
-				if (!Arrays.equals(bodyStart, body_start)) {
-					throw new ValidationException("Decrypted body can not be verified");
-				}
+                                byte[] bodyStart = new byte[body_start.length];
+                                int bodyHeaderLength = cipherInputStream.read(bodyStart);
+                                if (bodyHeaderLength != body_start.length) {
+                                        throw new ValidationException("Invalid body header length");
+                                }
+                                if (!Arrays.equals(bodyStart, body_start)) {
+                                        throw new ValidationException("Decrypted body can not be verified");
+                                }
 
-				byte[] payloadSizeBytes = new byte[8];
-				DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
+                                byte[] payloadSizeBytes = new byte[8];
+                                DataExportImportUtil.readFully(cipherInputStream, payloadSizeBytes);
 
-				long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
+                                long payloadSize = DataExportImportUtil.byteArrayToLong(payloadSizeBytes);
 
-				if (payloadSize <= 0 || payloadSize > maxEncryptedDataSize || payloadSize > Integer.MAX_VALUE) {
-					throw new ValidationException("Decrypted payload exceeds configured maximum size");
-				}
+                                if (payloadSize <= 0 || payloadSize > maxEncryptedDataSize || payloadSize > Integer.MAX_VALUE) {
+                                        throw new ValidationException("Decrypted payload exceeds configured maximum size");
+                                }
 
-				byte[] payload = new byte[(int) payloadSize];
-				DataExportImportUtil.readFully(cipherInputStream, payload);
+                                byte[] payload = new byte[(int) payloadSize];
+                                DataExportImportUtil.readFully(cipherInputStream, payload);
 
-				return objectMapper.readValue(payload, ExportData.class);
+                                byte[] jsonBytes;
+                                try (InflaterInputStream payloadInflater =
+                                                new InflaterInputStream(new ByteArrayInputStream(payload))) {
+                                        jsonBytes = payloadInflater.readAllBytes();
+                                } catch (ZipException zipEx) {
+                                        jsonBytes = payload;
+                                }
 
-			} catch (IOException ioex) {
-				throw new PasswordValidationException(
-						"Decryption of data has failed, maybe the provided password is incorrect?", ioex);
-			}
-		} catch (ZipException e) {
-			throw new ValidationException("Corrupted payload", e);
-		}
-	}
+                                return objectMapper.readValue(jsonBytes, ExportData.class);
+
+                        } catch (IOException ioex) {
+                                throw new PasswordValidationException(
+                                                "Decryption of data has failed, maybe the provided password is incorrect?", ioex);
+                        }
+                } catch (ZipException e) {
+                        throw new ValidationException("Corrupted payload", e);
+                }
+        }
 
 }
