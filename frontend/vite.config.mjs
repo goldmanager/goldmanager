@@ -6,7 +6,21 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     globals: true,
-    environment: 'jsdom'
+    environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: 'coverage',
+      all: true,
+      include: ['src/**/*.{js,vue}'],
+      exclude: ['src/main.js', 'src/**/__mocks__/**'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80
+      }
+    }
   },
   resolve: {
     alias: {

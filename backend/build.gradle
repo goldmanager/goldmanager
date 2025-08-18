@@ -76,6 +76,13 @@ java {
                    minimum = 0.90
                }
            }
+           rule {
+               limit {
+                   counter = 'BRANCH'
+                   value = 'COVEREDRATIO'
+                   minimum = 0.80
+               }
+           }
        }
    }
 configurations {
@@ -141,9 +148,11 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.named('test') {
- 	onlyIf { !project.hasProperty('skipTests') }
+	onlyIf { !project.hasProperty('skipTests') }
 	outputs.dir snippetsDir
 	useJUnitPlatform()
+    // Always publish a JaCoCo report when running `test` directly
+    finalizedBy jacocoTestReport
 }
 
 tasks.check {

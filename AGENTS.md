@@ -25,10 +25,10 @@ comments.
 ## Build and Test Instructions
 
 ### Backend
-* Use the Gradle wrapper to build and run tests:
+* Use the Gradle wrapper to build and run checks (includes tests and coverage verification):
   ```bash
   cd backend
-  ./gradlew test
+  ./gradlew check
   ```
 * Development server can be started with `./gradlew bootRun` after the database from `dev-env/compose.yaml` is running.
 * Default admin user and default admin passwords can be set by running with java parameters -DAPP_DEFAULT_USER and -DAPP_DEFAULT_PASSWORD
@@ -78,9 +78,9 @@ After modifying backend or frontend code, run the following checks before
 committing:
 When backend functions are added or changed, corresponding unit or integration tests must be created or updated.
 
-1. `./gradlew test` inside `backend/`
+1. `./gradlew check` inside `backend/` (runs tests and enforces JaCoCo coverage)
 2. `npm run lint` inside `frontend/`
-3. `npm run test` inside `frontend/`
+3. `npm run test:coverage` inside `frontend/` (generates coverage report and enforces thresholds)
 
 Include any relevant outputs in the PR description.
 
@@ -105,7 +105,7 @@ authentication for integration tests and is activated when running with the
 
 - `backend/src/test/resources/application-test.properties` configures the in-memory H2 database used during tests.
 - When a test class uses `@ActiveProfiles("test")`, Spring Boot loads `TestSecurityConfiguration` to simplify authentication for testing.
-- Run `./gradlew test` from the `backend` directory to execute all backend tests.
+- Run `./gradlew check` from the `backend` directory to execute tests and coverage verification.
   
 ## Documentation Guidelines
 Any documentation (especially javadoc and comments in code) shall be written in english.
