@@ -2,7 +2,7 @@
 
 This project uses several open source dependencies. The following table lists key packages and their licenses.
 
-The package versions were updated to the latest stable releases as of July 2025.
+The package versions were reviewed and updated as of August 2025. No license classifications changed with these updates; frontend packages (Vue, Vite, Axios, Element Plus, Chart.js, etc.) remain MIT-licensed.
 
 | Component | License |
 |-----------|--------|
