@@ -62,3 +62,12 @@ jobs:
     - name: Test Backend (with PIT)
       working-directory: ./backend
       run: ./gradlew check -PrunPitest
+
+    - name: Upload PIT report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pitest-report
+        path: backend/build/reports/pitest
+        if-no-files-found: warn
+        retention-days: 7
