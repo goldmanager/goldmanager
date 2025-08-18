@@ -59,6 +59,6 @@ jobs:
         rm -rf backend/src/main/resources/static/*
         cp -r frontend/dist/* backend/src/main/resources/static/
 
-    - name: Test Backend
+    - name: Test Backend (with PIT)
       working-directory: ./backend
-      run: ./gradlew check
+      run: ./gradlew check -PrunPitest
