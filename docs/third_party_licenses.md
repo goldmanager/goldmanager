@@ -14,6 +14,8 @@ The package versions were reviewed and updated as of August 2025. No license cla
 | H2 database | MPL 2.0 / EPL 1.0 |
 | Byte Buddy | Apache-2.0 |
 | Mockito | MIT |
+| PIT Mutation Testing (core, Gradle plugin) | Apache-2.0 |
+| PIT JUnit 5 Plugin | Apache-2.0 |
 | Vue, Vite and related frontend packages | MIT |
 | Vitest | MIT |
 | Vue Test Utils | MIT |

@@ -1,10 +1,11 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.4'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.asciidoctor.jvm.convert' version '4.0.4'
-	id 'jacoco' 
-	id 'org.cyclonedx.bom' version '2.3.1'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.asciidoctor.jvm.convert' version '4.0.4'
+    id 'jacoco' 
+    id 'org.cyclonedx.bom' version '2.3.1'
+    id 'info.solidsoft.pitest' version '1.15.0'
 
 }
 
@@ -139,7 +140,10 @@ dependencies {
     testImplementation 'com.h2database:h2'
     
     
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // PIT JUnit 5 support
+    pitest 'org.pitest:pitest-junit5-plugin:1.2.1'
 
 }
 
@@ -156,11 +160,43 @@ tasks.named('test') {
 }
 
 tasks.check {
-	   onlyIf { !project.hasProperty('skipTests') }
+       onlyIf { !project.hasProperty('skipTests') }
        dependsOn jacocoTestCoverageVerification
+       // Run PIT only when explicitly requested to keep default checks fast
+       if (project.hasProperty('runPitest')) {
+           dependsOn 'pitest'
+       }
        
 }
 tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
-	dependsOn test
+    dependsOn test
+}
+
+// PIT mutation testing configuration
+pitest {
+    testPlugin = 'junit5'
+    junit5PluginVersion = '1.2.1'
+    targetClasses = [
+        'com.my.goldmanager.service.*',
+        'com.my.goldmanager.encoder.*',
+        'com.my.goldmanager.pricecollector.*',
+        'com.my.goldmanager.service.util.*',
+        'com.my.goldmanager.service.dataexpimp.*'
+    ]
+    targetTests = [
+        'com.my.goldmanager.*'
+    ]
+    // Reports under build/reports/pitest without timestamp for stable paths
+    timestampedReports = false
+    useClasspathFile = true
+    failWhenNoMutations = false
+    threads = 4
+    // Exclude configuration/bootstrap and Spring-specific wiring from mutation
+    excludedClasses = [
+        'com.my.goldmanager.GoldmanagerApplication',
+        'com.my.goldmanager.GoldmanagerApplication*',
+        'com.my.goldmanager.config.*',
+        'com.my.goldmanager.controller.*'
+    ]
 }

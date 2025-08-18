@@ -35,6 +35,26 @@ comments.
 ** e.G. -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!
 * Since during the first usage of ./gradlew the gradle binaries are downloaded the first build in asession can take a few minutes. Wait a reasonable time accordingly.
 
+#### Mutation Testing (PIT)
+PIT is integrated into the backend build and scoped to core logic packages for faster runs (`service`, `encoder`, `pricecollector`, `service.util`, `service.dataexpimp`). By default it does not run with `check` to keep the feedback loop fast. To execute mutation tests:
+
+```bash
+cd backend
+# Run PIT standalone
+./gradlew pitest
+
+# Or include PIT as part of check via a property
+./gradlew check -PrunPitest
+
+# Reports are generated under:
+#   backend/build/reports/pitest/index.html
+```
+
+Notes:
+- PIT runs JUnit 5 tests. It excludes Spring configuration and controller classes by default to avoid mutating framework wiring.
+- Scope: Only core logic classes are mutated by default (services, utilities, data export/import, encoder, price collector). Adjust `targetClasses` in `backend/build.gradle` if you want broader coverage.
+- If you need to skip all tests entirely, you can still use `-PskipTests` which also prevents PIT from running during `check`.
+
 ### Frontend
 * Install dependencies and run the linter or development server:
   ```bash
@@ -79,6 +99,7 @@ committing:
 When backend functions are added or changed, corresponding unit or integration tests must be created or updated.
 
 1. `./gradlew check` inside `backend/` (runs tests and enforces JaCoCo coverage)
+   - Optionally include mutation tests: `./gradlew check -PrunPitest`
 2. `npm run lint` inside `frontend/`
 3. `npm run test:coverage` inside `frontend/` (generates coverage report and enforces thresholds)
 
