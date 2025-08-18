@@ -6,7 +6,7 @@ plugins {
     id 'jacoco' 
     id 'org.cyclonedx.bom' version '2.3.1'
     // Upgraded to reduce Gradle deprecation warnings in newer Gradle versions
-    id 'info.solidsoft.pitest' version '1.15.1'
+    id 'info.solidsoft.pitest' version '1.15.0'
 
 }
 
