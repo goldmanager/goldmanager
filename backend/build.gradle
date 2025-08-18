@@ -58,7 +58,7 @@ java {
 	}
 }
 
- jacocoTestCoverageVerification {
+   jacocoTestCoverageVerification {
       onlyIf { !project.hasProperty('skipTests') }
       dependsOn jacocoTestReport
        violationRules {
@@ -67,6 +67,13 @@ java {
                    counter = 'LINE' // Check line coverage
                    value = 'COVEREDRATIO'
                    minimum = 0.90 // Enforce minimum coverage to 90%
+               }
+           }
+           rule {
+               limit {
+                   counter = 'INSTRUCTION'
+                   value = 'COVEREDRATIO'
+                   minimum = 0.90
                }
            }
        }
