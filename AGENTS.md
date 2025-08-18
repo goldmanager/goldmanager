@@ -55,6 +55,9 @@ Notes:
 - Scope: Only core logic classes are mutated by default (services, utilities, data export/import, encoder, price collector). Adjust `targetClasses` in `backend/build.gradle` if you want broader coverage.
 - If you need to skip all tests entirely, you can still use `-PskipTests` which also prevents PIT from running during `check`.
 
+PIT Gradle plugin version:
+- The project uses the `info.solidsoft.pitest` Gradle plugin. If you encounter a Gradle deprecation warning about `ReportingExtension.getBaseDir()`, update the plugin in `backend/build.gradle` to the latest available version and rerun the build. Newer versions use Gradle's `getBaseDirectory()` and remove the warning.
+
 ### Frontend
 * Install dependencies and run the linter or development server:
   ```bash

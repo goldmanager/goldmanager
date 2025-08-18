@@ -5,7 +5,8 @@ plugins {
     id 'org.asciidoctor.jvm.convert' version '4.0.4'
     id 'jacoco' 
     id 'org.cyclonedx.bom' version '2.3.1'
-    id 'info.solidsoft.pitest' version '1.15.0'
+    // Upgraded to reduce Gradle deprecation warnings in newer Gradle versions
+    id 'info.solidsoft.pitest' version '1.15.1'
 
 }
 
@@ -15,7 +16,10 @@ group = 'de.goldmanager'
 version = '1.0.1'
 compileJava.options.encoding = 'UTF-8'
 
-task generateVersionProperties {
+// Capture version at configuration time to avoid using Task.project at execution time (Gradle 10 compatibility)
+def versionString = version.toString()
+
+tasks.register("generateVersionProperties") {
     def outputDir = file("$buildDir/generated-resources")
     def versionFile = new File(outputDir, "version.properties")
 
@@ -23,11 +27,10 @@ task generateVersionProperties {
     doLast {
         outputDir.mkdirs()
         def properties = new Properties()
-        properties.setProperty('version', project.version.toString())
+        properties.setProperty('version', versionString)
         versionFile.withWriter { writer ->
             properties.store(writer, null)
         }
-      
     }
 }
 sourceSets.main.resources.srcDir("$buildDir/generated-resources")
@@ -48,10 +51,9 @@ tasks.named("classes").configure {
  jacocoTestReport {
        dependsOn test // Ensure tests run before generating the report
        reports {
-           xml.required = true
-           html.required = true
+           xml.required.set(true)
+           html.required.set(true)
        }
-      
  }
 java {
 	toolchain {
@@ -177,6 +179,8 @@ tasks.named('asciidoctor') {
 pitest {
     testPlugin = 'junit5'
     junit5PluginVersion = '1.2.1'
+    // Avoid deprecated ReportingExtension.getBaseDir() by setting reportDir explicitly
+    reportDir = file("$buildDir/reports/pitest")
     targetClasses = [
         'com.my.goldmanager.service.*',
         'com.my.goldmanager.encoder.*',
