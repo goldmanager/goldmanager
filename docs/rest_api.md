@@ -22,6 +22,7 @@ the JWT cookie and returns a JSON body with the new expiration data while
 
 | Resource | Base URL | Sample operations |
 |----------|---------|------------------|
+| Health | `/api/health` | `GET` returns `{ "status": "ok" }` (no auth) |
 | Items | `/api/items` | `POST`, `PUT /{id}`, `GET /{id}`, `DELETE /{id}`, list all via `GET` |
 | Item Types | `/api/itemTypes` | CRUD operations similar to items |
 | Item Storages | `/api/itemStorages` | CRUD operations |
@@ -86,4 +87,3 @@ npm run dev
 5. View the data in the UI under `/items` or `/metals` routes.
 
 Keep this document updated whenever endpoints or authentication behaviour change so that it remains a reliable reference.
-

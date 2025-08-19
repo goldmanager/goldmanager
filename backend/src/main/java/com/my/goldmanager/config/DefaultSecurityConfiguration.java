@@ -63,6 +63,7 @@ public class DefaultSecurityConfiguration {
                                .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                .authorizeHttpRequests(
                                                requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                                .requestMatchers("/api/health").permitAll()
                                                                 .requestMatchers("/api/auth/login").permitAll()
                                                                 .requestMatchers("/api/auth/csrf").permitAll()
                                                                 .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()

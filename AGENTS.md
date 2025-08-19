@@ -5,22 +5,28 @@ This repository contains two sub-projects:
 * **backend/** – Spring Boot application built with Gradle. Java 21 is required.
 * **frontend/** – Vue 3 SPA built with Node (tested with Node 20).
   Use Node.js 20 for local development to match the CI environment.
+* **e2e/** – Playwright end-to-end tests. Requires Node 20 and Java 21. Recommended to run inside the official Playwright Docker image via `./e2e/run-in-docker.sh` which installs JDK 21 in the container, maps the host DB, and sets extended timeouts for fresh DB initialization. HTML reports are written to `e2e/test-results-html/`; quick status is in `e2e/test-results/.last-run.json`.
 
 ## Response Protocol
 
 Each answer must contain two clearly separated roles:
 
-1. **Developer** ("Entwickler") – Implements the requested changes or
+1. **Developer** – Implements the requested changes or
    explains how they were addressed. Prefix the section with
-   `### Entwickler:`.
+   `### Developer:`.
 2. **Reviewer** – Reviews the developer's work for correctness, clarity,
    maintainability, best practices and potential issues. Prefix the section
    with `### Reviewer:`. If problems are found, explicitly request
    improvements and hand control back to the developer for the next
+   iteration. If no Issues are found hand control to Test-Engineer
+2. **Test-Engineer** – Checks the changes for necessary additional Playwright tests and ensures that playwright tests are running successfully if any code in backend or frontend is chaged. Prefix the section
+   with `### Test-Engineer:`. If the user If problems are found, explicitly request
+   improvements and hand control back to the developer for the next
    iteration.
 
-Repeat this developer-reviewer cycle until the reviewer has no further
+Repeat this developer-reviewer-Test-Engineer cycle until the reviewer and/or Test-Engineer have no further
 comments.
+If the user requests launching of playwright tests without any code changes, the Test-Engineer runs them directly without actions from Developer or Reviewer.
 
 ## Build and Test Instructions
 
@@ -83,6 +89,30 @@ When backend functions are added or changed, corresponding unit or integration t
 3. `npm run test` inside `frontend/`
 
 Include any relevant outputs in the PR description.
+
+### E2E (Playwright)
+- Location: `e2e/`
+- DB: The launcher attempts to auto-start MariaDB via Docker. If Docker isn’t available, start it manually with `docker compose -f backend/dev-env/compose.yaml up -d`.
+- Install and run:
+  - `cd e2e && npm install`
+  - `npm test` (headless) or `npm run test:ui` (browsers installed via `pretest`)
+- The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
+- E2E DB management:
+  - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (default port 3317).
+  - The Docker runner ensures a clean DB before tests. Default is a fast SQL reset (drop/recreate `goldmanager` DB for user `myuser`). Set `E2E_DB_RESET_MODE=compose` to perform a full `docker compose down -v && up -d` reset.
+- Image versioning:
+  - The E2E Docker image preinstalls Playwright browsers. Override version via env, e.g.: `PLAYWRIGHT_VERSION=1.55.0 ./e2e/run-in-docker.sh`.
+  - The build arg `PLAYWRIGHT_VERSION` is passed to `e2e/Dockerfile` to align the image with the test runner.
+- Reliability env vars for slow first runs/fresh DBs:
+  - `E2E_DB_WAIT_MS` (default 360000): Max wait for MariaDB TCP readiness.
+  - `E2E_HEALTH_TIMEOUT_MS` (default 600000): Max wait for app health endpoint.
+  - `E2E_WEBSERVER_TIMEOUT_MS` (default 720000): Playwright webServer readiness timeout.
+- Example: `tests/login.spec.ts` performs a login with default credentials.
+ - Readiness is based on `GET /api/health` which is public and returns `{ "status": "ok" }`.
+ - Config:
+   - DB overrides: `E2E_DB_HOST` (default `localhost`), `E2E_DB_PORT` (default `3307`).
+   - Frontend install prefers `npm ci` when `package-lock.json` is present.
+    - Docker auto-start for the dev DB runs only when the DB host is local (`localhost`, `127.0.0.1`, or `::1`).
 
 ## Commit Guidelines
 Use concise commit messages that start with a short imperative summary.

@@ -21,6 +21,27 @@ Please see also https://github.com/goldmanager/goldmanager-dockercompose for an 
 The frontend is built and tested with Node.js 20. Install dependencies with `npm install` inside `frontend/` before running `npm run lint` and `npm run test` or starting the dev server.
 The backend requires Java 21 and can be tested with `./gradlew test` in the `backend/` directory.
 
+## E2E Tests (Playwright)
+
+End-to-end tests live in `e2e/` and run against the Spring Boot app serving the built Vue frontend.
+
+1) Start the development database:
+
+```bash
+docker compose -f backend/dev-env/compose.yaml up -d
+```
+
+2) Install and run E2E tests:
+
+```bash
+cd e2e
+npm install
+npx playwright install
+npm test   # or: npm run test:ui
+```
+
+The Playwright runner will build the frontend, build the backend JAR and start the app at `http://localhost:8080` before executing tests.
+
 ## Configuration
 
 The size of encrypted export data that can be processed during import is limited. You can adjust the limit via the property `com.my.goldmanager.service.dataexpimp.maxEncryptedDataSize` in `backend/src/main/resources/application.properties`. The default value is `52428800` bytes (50 MB).
@@ -35,4 +56,3 @@ This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) fo
 
 # Third-Party Licenses
 A list of key dependencies and their licenses can be found in [docs/third_party_licenses.md](docs/third_party_licenses.md). All dependencies were reviewed for compatibility with the Apache License 2.0.
-
