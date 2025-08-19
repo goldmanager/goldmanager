@@ -14,10 +14,16 @@ export default defineConfig({
   },
   fullyParallel: true,
   retries: 0,
-  reporter: 'list',
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'test-results-html', open: 'never' }],
+    ['json', { outputFile: 'test-results/report.json' }],
+  ],
   use: {
     baseURL: 'http://localhost:8080',
-    trace: 'on-first-retry',
+    trace: 'on',
+    video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
 
   // Build frontend, build backend, start server. Requires MariaDB running.
@@ -25,7 +31,7 @@ export default defineConfig({
     command: 'node ./scripts/start-app.cjs',
     url: 'http://localhost:8080/api/health',
     reuseExistingServer: true,
-    timeout: 480_000,
+    timeout: Number(process.env.E2E_WEBSERVER_TIMEOUT_MS || '720000'),
     cwd: __dirname,
   },
 

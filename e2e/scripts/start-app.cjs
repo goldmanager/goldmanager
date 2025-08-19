@@ -62,8 +62,9 @@ function run(cmd, args, opts = {}) {
 
 async function ensureDb() {
   const host = process.env.E2E_DB_HOST || 'localhost';
-  const port = Number(process.env.E2E_DB_PORT || 3307); // mapped in backend/dev-env/compose.yaml by default
+  const port = Number(process.env.E2E_DB_PORT || 3317); // E2E DB defaults to 3317
   const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(host);
+  const dbWaitMs = Number(process.env.E2E_DB_WAIT_MS || 360000); // up to 6 minutes for first-time init
   log(`Checking MariaDB at ${host}:${port} ...`);
   if (await waitForTcp(host, port, 3000)) {
     log('MariaDB is up.');
@@ -73,18 +74,24 @@ async function ensureDb() {
   const docker = which('docker');
   if (isLocalHost) {
     if (!docker) {
-      err('Docker not found; cannot auto-start dev DB. Please start it manually:');
-      err('  docker compose -f backend/dev-env/compose.yaml up -d');
+      err('Docker not found; cannot auto-start E2E DB. Please start it manually:');
+      err('  docker compose -f e2e/dev-db/compose.yaml up -d');
     } else {
-      log('Attempting to start MariaDB via docker compose ...');
-      const composeFile = path.join(backendDir, 'dev-env', 'compose.yaml');
-      // Prefer: docker compose
+      log('Attempting to start E2E MariaDB via docker compose (clean start) ...');
+      const composeFile = process.env.E2E_DB_COMPOSE_FILE || path.join(repoRoot, 'e2e', 'dev-db', 'compose.yaml');
+      // Clean any previous instance/volume and start fresh to ensure clean DB
+      try {
+        run(docker, ['compose', '-f', composeFile, 'down', '-v']);
+      } catch (e) {
+        err('Ignoring compose down errors (possibly first run).');
+      }
       try {
         run(docker, ['compose', '-f', composeFile, 'up', '-d']);
       } catch (e) {
         // Fallback: docker-compose (legacy)
         const dockerCompose = which('docker-compose');
         if (dockerCompose) {
+          try { run(dockerCompose, ['-f', composeFile, 'down', '-v']); } catch {}
           run(dockerCompose, ['-f', composeFile, 'up', '-d']);
         } else {
           throw e;
@@ -95,8 +102,8 @@ async function ensureDb() {
     log('DB host is not local; skipping docker auto-start.');
   }
 
-  log('Waiting for MariaDB to become ready ...');
-  const ready = await waitForTcp(host, port, 60_000);
+  log(`Waiting for MariaDB to become ready (up to ${dbWaitMs} ms) ...`);
+  const ready = await waitForTcp(host, port, dbWaitMs);
   if (!ready) {
     throw new Error('MariaDB did not become ready in time');
   }
@@ -150,6 +157,15 @@ async function startApp() {
   const jarPath = findBootJar();
   if (!jarPath) throw new Error('Could not locate backend JAR under backend/build/libs');
   log(`Starting backend: ${jarPath}`);
+  // If running in a container with an external DB host, derive datasource URL
+  const dbHost = process.env.E2E_DB_HOST || 'localhost';
+  const dbPort = Number(process.env.E2E_DB_PORT || 3317);
+  const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(dbHost);
+  const defaultDevPort = 3307;
+  if (!process.env.SPRING_DATASOURCE_URL && (!isLocalHost || dbPort !== defaultDevPort)) {
+    process.env.SPRING_DATASOURCE_URL = `jdbc:mariadb://${dbHost}:${dbPort}/goldmanager`;
+    log(`Derived SPRING_DATASOURCE_URL=${process.env.SPRING_DATASOURCE_URL}`);
+  }
   const javaArgs = [
     '-Dspring.profiles.active=dev',
     '-DAPP_DEFAULT_USER=admin',
@@ -191,8 +207,9 @@ async function startApp() {
       }
       return false;
     }
-    log('Waiting for application health check ...');
-    const healthy = await waitForHealth(120_000);
+    const healthTimeoutMs = Number(process.env.E2E_HEALTH_TIMEOUT_MS || 600_000);
+    log(`Waiting for application health check (up to ${healthTimeoutMs} ms) ...`);
+    const healthy = await waitForHealth(healthTimeoutMs);
     if (!healthy) {
       throw new Error('Application health endpoint did not become ready in time');
     }

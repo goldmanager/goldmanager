@@ -9,9 +9,10 @@
     "pretest": "playwright install",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
+    "report": "playwright show-report ./test-results-html",
     "codegen": "playwright codegen http://localhost:8080"
   },
   "devDependencies": {
-    "@playwright/test": "^1.47.2"
+    "@playwright/test": "1.54.2"
   }
 }
