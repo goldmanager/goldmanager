@@ -5,14 +5,15 @@ This repository contains two sub-projects:
 * **backend/** – Spring Boot application built with Gradle. Java 21 is required.
 * **frontend/** – Vue 3 SPA built with Node (tested with Node 20).
   Use Node.js 20 for local development to match the CI environment.
+* **e2e/** – Playwright end-to-end tests. Requires Node 20 and Java 21.
 
 ## Response Protocol
 
 Each answer must contain two clearly separated roles:
 
-1. **Developer** ("Entwickler") – Implements the requested changes or
+1. **Developer** – Implements the requested changes or
    explains how they were addressed. Prefix the section with
-   `### Entwickler:`.
+   `### Developer:`.
 2. **Reviewer** – Reviews the developer's work for correctness, clarity,
    maintainability, best practices and potential issues. Prefix the section
    with `### Reviewer:`. If problems are found, explicitly request
@@ -83,6 +84,20 @@ When backend functions are added or changed, corresponding unit or integration t
 3. `npm run test` inside `frontend/`
 
 Include any relevant outputs in the PR description.
+
+### E2E (Playwright)
+- Location: `e2e/`
+- DB: The launcher attempts to auto-start MariaDB via Docker. If Docker isn’t available, start it manually with `docker compose -f backend/dev-env/compose.yaml up -d`.
+- Install and run:
+  - `cd e2e && npm install`
+  - `npm test` (headless) or `npm run test:ui` (browsers installed via `pretest`)
+- The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
+- Example: `tests/login.spec.ts` performs a login with default credentials.
+ - Readiness is based on `GET /api/health` which is public and returns `{ "status": "ok" }`.
+ - Config:
+   - DB overrides: `E2E_DB_HOST` (default `localhost`), `E2E_DB_PORT` (default `3307`).
+   - Frontend install prefers `npm ci` when `package-lock.json` is present.
+    - Docker auto-start for the dev DB runs only when the DB host is local (`localhost`, `127.0.0.1`, or `::1`).
 
 ## Commit Guidelines
 Use concise commit messages that start with a short imperative summary.
