@@ -105,6 +105,7 @@ Prerequisites:
 - Backend JAR is already built on the host at `backend/build/libs/*.jar` (non `-plain`). If not present, build it outside the restricted agent: `cd backend && ./gradlew bootJar`.
 - Playwright image exists: `goldmanager/e2e-playwright:local` (build once if missing: `docker build -f e2e/Dockerfile -t goldmanager/e2e-playwright:local .`).
 - E2E dependencies installed once on host (to avoid network in container): `cd e2e && npm ci`
+  - Note: If you previously built the backend inside a container, `backend/build` files may be owned by root. If `--build-jar` fails with permission errors, fix ownership: `sudo chown -R "$USER":"$USER" backend/build`.
 
 Run tests (all browsers) from the repo root:
 
