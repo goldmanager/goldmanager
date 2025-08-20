@@ -75,7 +75,7 @@ public class MetalPriceCollector {
 	@Setter
 	private ObjectMapper objectMapper;
 
-	@Value("${metalpricecollector.apikey}:#{null}")
+	@Value("${metalpricecollector.apikey:#{null}}")
 	@Getter
 	@Setter
 	private String apiKey;
