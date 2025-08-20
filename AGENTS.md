@@ -127,6 +127,15 @@ bash ./e2e/run-in-docker-agent.sh --build-jar
 
 # Fix permissions on backend/build and report dirs, then run Chromium only
 bash ./e2e/run-in-docker-agent.sh --fix-perms -- --project=chromium
+
+# Only fix backend/build permissions, then run Chromium
+bash ./e2e/run-in-docker-agent.sh --fix-perms-backend -- --project=chromium
+
+# Only fix report directories, then run Chromium
+bash ./e2e/run-in-docker-agent.sh --fix-perms-reports -- --project=chromium
+
+# Force a full clean E2E DB (down -v; up -d) before tests
+bash ./e2e/run-in-docker-agent.sh --clean-db
 ```
 
 Notes:

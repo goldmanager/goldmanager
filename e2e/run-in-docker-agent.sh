@@ -15,6 +15,9 @@ DB_PORT="${E2E_DB_PORT:-3317}"
 # Parse flags
 BUILD_JAR=0
 FIX_PERMS=0
+FIX_PERMS_BACKEND=0
+FIX_PERMS_REPORTS=0
+CLEAN_DB=0
 PASS_ARGS=()
 for arg in "$@"; do
   case "$arg" in
@@ -23,6 +26,15 @@ for arg in "$@"; do
       ;;
     --fix-perms)
       FIX_PERMS=1
+      ;;
+    --fix-perms-backend)
+      FIX_PERMS_BACKEND=1
+      ;;
+    --fix-perms-reports)
+      FIX_PERMS_REPORTS=1
+      ;;
+    --clean-db)
+      CLEAN_DB=1
       ;;
     *)
       PASS_ARGS+=("$arg")
@@ -33,15 +45,27 @@ done
 echo "[agent-e2e] Using image: ${IMAGE}"
 
 # Ensure E2E DB is up on host
+if [ ${CLEAN_DB} -eq 1 ]; then
+  echo "[agent-e2e] CLEAN_DB requested -> docker compose down -v; up -d"
+  docker compose -f "${COMPOSE_FILE}" down -v || true
+fi
 echo "[agent-e2e] Ensuring E2E DB is running via ${COMPOSE_FILE} ..."
 docker compose -f "${COMPOSE_FILE}" up -d >/dev/null
 
 # Optionally fix permissions for host build artifacts and report dirs using a root container
-if [ ${FIX_PERMS} -eq 1 ]; then
-  echo "[agent-e2e] Fixing permissions on backend/build and e2e/test-results* via root container ..."
+if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_BACKEND} -eq 1 ] || [ ${FIX_PERMS_REPORTS} -eq 1 ]; then
+  echo "[agent-e2e] Fixing permissions via root container ..."
+  # Determine targets
+  B_TARGET=""; R_TARGET=""
+  if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_BACKEND} -eq 1 ]; then
+    B_TARGET="/work/backend/build"
+  fi
+  if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_REPORTS} -eq 1 ]; then
+    R_TARGET="/work/e2e/test-results /work/e2e/test-results-html"
+  fi
   docker run --rm -v "${PWD}":/work alpine:3.19 sh -lc "\
-    mkdir -p /work/backend/build /work/e2e/test-results /work/e2e/test-results-html && \
-    chown -R $(id -u):$(id -g) /work/backend/build /work/e2e/test-results /work/e2e/test-results-html" || true
+    mkdir -p ${B_TARGET:-} /work/e2e/test-results /work/e2e/test-results-html && \
+    chown -R \$(id -u):\$(id -g) ${B_TARGET:-} ${R_TARGET:-}" || true
 fi
 
 # Optionally build backend JAR on host
