@@ -107,6 +107,7 @@ Wrapper capabilities:
 - Runs the backend JAR inside the Playwright image and waits for `GET /api/health`.
 - Executes Playwright using `e2e/playwright.no-server.config.ts`.
 - For quick reference: `bash ./e2e/run-in-docker-agent.sh --help` prints usage, options and examples.
+- Use `--verbose` to print additional logs (enables shell xtrace in the container and tails the backend app.log on failures).
 
 Prerequisites:
 - E2E DB is up on the host (MariaDB): `docker compose -f e2e/dev-db/compose.yaml up -d`
@@ -144,6 +145,9 @@ bash ./e2e/run-in-docker-agent.sh --fix-perms-reports -- --project=chromium
 
 # Force a full clean E2E DB (down -v; up -d) before tests
 bash ./e2e/run-in-docker-agent.sh --clean-db
+
+# Verbose run to aid debugging
+bash ./e2e/run-in-docker-agent.sh --verbose -- --project=chromium
 
 To see all options at any time:
 

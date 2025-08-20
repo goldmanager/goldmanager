@@ -19,6 +19,7 @@ FIX_PERMS_BACKEND=0
 FIX_PERMS_REPORTS=0
 CLEAN_DB=0
 SHOW_HELP=0
+VERBOSE=0
 PASS_ARGS=()
 for arg in "$@"; do
   case "$arg" in
@@ -36,6 +37,9 @@ for arg in "$@"; do
       ;;
     --clean-db)
       CLEAN_DB=1
+      ;;
+    --verbose)
+      VERBOSE=1
       ;;
     -h|--help)
       SHOW_HELP=1
@@ -59,6 +63,7 @@ Options:
   --fix-perms           Fix ownership for backend/build and e2e/test-results*
   --fix-perms-backend   Fix ownership for backend/build only
   --fix-perms-reports   Fix ownership for e2e/test-results*
+  --verbose             Print verbose logs; tail app.log on failure
   -h, --help            Show this help
 
 Notes:
@@ -129,10 +134,12 @@ echo "[agent-e2e] Starting tests in Docker (this may take ~20–40s) ..."
 docker run --rm --user root --add-host=host.docker.internal:host-gateway --shm-size=1g \
   -e SPRING_DATASOURCE_URL="jdbc:mariadb://${DB_HOST}:${DB_PORT}/goldmanager" \
   -e E2E_TEST_ARGS="${E2E_TEST_ARGS:-}" \
+  -e VERBOSE="${VERBOSE}" \
   -v "${PWD}":/work -w /work \
   -p 8080:8080 \
   "${IMAGE}" bash -lc '
 set -euo pipefail
+[ "${VERBOSE:-0}" = "1" ] && set -x || true
 cd /work/e2e
 # Require existing node_modules to avoid network installs in restricted envs
 if [ ! -d node_modules/@playwright/test ]; then
@@ -150,12 +157,18 @@ JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_P
 
 echo "[agent-e2e] Waiting for app health at http://localhost:8080/api/health ..."
 for i in $(seq 1 120); do
-  curl -sf http://localhost:8080/api/health >/dev/null 2>&1 && break || sleep 1
+  if curl -sf http://localhost:8080/api/health >/dev/null 2>&1; then
+    break
+  fi
+  [ "${VERBOSE:-0}" = "1" ] && echo "[agent-e2e] waiting... ($i)" || true
+  sleep 1
 done
 
 cd /work/e2e
 echo "[agent-e2e] Running Playwright tests ..."
-npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS:-}
+npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS:-} || {
+  code=$?; echo "[agent-e2e] Tests failed. Last 200 lines of app.log:";
+  tail -n 200 /work/e2e/app.log || true; exit $code; }
 '
 
 exit $?
