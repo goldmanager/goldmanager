@@ -12,11 +12,31 @@ COMPOSE_FILE="e2e/dev-db/compose.yaml"
 DB_HOST="host.docker.internal"
 DB_PORT="${E2E_DB_PORT:-3317}"
 
+# Parse flags
+BUILD_JAR=0
+PASS_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --build-jar)
+      BUILD_JAR=1
+      ;;
+    *)
+      PASS_ARGS+=("$arg")
+      ;;
+  esac
+done
+
 echo "[agent-e2e] Using image: ${IMAGE}"
 
 # Ensure E2E DB is up on host
 echo "[agent-e2e] Ensuring E2E DB is running via ${COMPOSE_FILE} ..."
 docker compose -f "${COMPOSE_FILE}" up -d >/dev/null
+
+# Optionally build backend JAR on host
+if [ ${BUILD_JAR} -eq 1 ]; then
+  echo "[agent-e2e] Building backend JAR on host (./gradlew bootJar) ..."
+  (cd backend && ./gradlew bootJar --no-daemon)
+fi
 
 # Verify backend JAR exists
 JAR=$(ls -1 backend/build/libs/*.jar 2>/dev/null | grep -v -- '-plain.jar' | head -n1 || true)
@@ -32,8 +52,8 @@ if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
   docker build -f e2e/Dockerfile -t "${IMAGE}" .
 fi
 
-# Pass-through any extra args to 'npm test --'
-E2E_TEST_ARGS="$*"
+# Pass-through any extra args (after filtering) to 'npm test --'
+E2E_TEST_ARGS="${PASS_ARGS[*]:-}"
 
 echo "[agent-e2e] Starting tests in Docker (this may take ~20–40s) ..."
 docker run --rm --user root --add-host=host.docker.internal:host-gateway --shm-size=1g \
@@ -68,4 +88,3 @@ npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS}
 '
 
 exit $?
-

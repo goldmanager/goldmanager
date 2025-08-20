@@ -120,6 +120,9 @@ bash ./e2e/run-in-docker-agent.sh -- --project=chromium
 
 # Single spec with UI
 bash ./e2e/run-in-docker-agent.sh -- tests/user-management.spec.ts --ui
+
+# Build backend JAR first, then run all tests
+bash ./e2e/run-in-docker-agent.sh --build-jar
 ```
 
 Notes:
