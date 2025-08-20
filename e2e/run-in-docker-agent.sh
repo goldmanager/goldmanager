@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Agent-friendly Playwright E2E runner
+# - Reuses host-built backend JAR
+# - Uses host E2E MariaDB via host.docker.internal
+# - Runs tests inside Playwright Docker image against a no-webserver config
+# - Avoids network installs by reusing existing e2e/node_modules
+
+IMAGE="${PLAYWRIGHT_IMAGE:-goldmanager/e2e-playwright:local}"
+COMPOSE_FILE="e2e/dev-db/compose.yaml"
+DB_HOST="host.docker.internal"
+DB_PORT="${E2E_DB_PORT:-3317}"
+
+# Parse flags
+BUILD_JAR=0
+FIX_PERMS=0
+FIX_PERMS_BACKEND=0
+FIX_PERMS_REPORTS=0
+CLEAN_DB=0
+SHOW_HELP=0
+VERBOSE=0
+PASS_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --build-jar)
+      BUILD_JAR=1
+      ;;
+    --fix-perms)
+      FIX_PERMS=1
+      ;;
+    --fix-perms-backend)
+      FIX_PERMS_BACKEND=1
+      ;;
+    --fix-perms-reports)
+      FIX_PERMS_REPORTS=1
+      ;;
+    --clean-db)
+      CLEAN_DB=1
+      ;;
+    --verbose)
+      VERBOSE=1
+      ;;
+    -h|--help)
+      SHOW_HELP=1
+      ;;
+    *)
+      PASS_ARGS+=("$arg")
+      ;;
+  esac
+done
+
+if [ ${SHOW_HELP} -eq 1 ]; then
+  cat <<'USAGE'
+Agent-friendly Playwright E2E runner
+
+Usage:
+  bash ./e2e/run-in-docker-agent.sh [options] [--] [playwright-args]
+
+Options:
+  --build-jar           Build backend JAR on host (./gradlew -x cyclonedxBom bootJar)
+  --clean-db            Reset E2E DB (docker compose down -v; up -d)
+  --fix-perms           Fix ownership for backend/build and e2e/test-results*
+  --fix-perms-backend   Fix ownership for backend/build only
+  --fix-perms-reports   Fix ownership for e2e/test-results*
+  --verbose             Print verbose logs; tail app.log on failure
+  -h, --help            Show this help
+
+Notes:
+  - Requires host E2E deps installed once: (cd e2e && npm ci)
+  - Reuses prebuilt backend JAR at backend/build/libs (non -plain). Use --build-jar if missing.
+  - Runs inside Playwright Docker image and uses playwright.no-server.config.ts
+  - Pass extra Playwright args after --, e.g.: -- --project=chromium
+
+Examples:
+  bash ./e2e/run-in-docker-agent.sh
+  bash ./e2e/run-in-docker-agent.sh -- --project=chromium
+  bash ./e2e/run-in-docker-agent.sh --build-jar
+  bash ./e2e/run-in-docker-agent.sh --clean-db --fix-perms-reports -- --ui tests/login.spec.ts
+USAGE
+  exit 0
+fi
+
+echo "[agent-e2e] Using image: ${IMAGE}"
+
+# Ensure E2E DB is up on host
+if [ ${CLEAN_DB} -eq 1 ]; then
+  echo "[agent-e2e] CLEAN_DB requested -> docker compose down -v; up -d"
+  docker compose -f "${COMPOSE_FILE}" down -v || true
+fi
+echo "[agent-e2e] Ensuring E2E DB is running via ${COMPOSE_FILE} ..."
+docker compose -f "${COMPOSE_FILE}" up -d >/dev/null
+
+# Optionally fix permissions for host build artifacts and report dirs using a root container
+if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_BACKEND} -eq 1 ] || [ ${FIX_PERMS_REPORTS} -eq 1 ]; then
+  echo "[agent-e2e] Fixing permissions via root container ..."
+  # Determine targets
+  B_TARGET=""; R_TARGET=""
+  if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_BACKEND} -eq 1 ]; then
+    B_TARGET="/work/backend/build"
+  fi
+  if [ ${FIX_PERMS} -eq 1 ] || [ ${FIX_PERMS_REPORTS} -eq 1 ]; then
+    R_TARGET="/work/e2e/test-results /work/e2e/test-results-html"
+  fi
+  docker run --rm -v "${PWD}":/work alpine:3.19 sh -lc "\
+    mkdir -p ${B_TARGET:-} /work/e2e/test-results /work/e2e/test-results-html && \
+    chown -R \$(id -u):\$(id -g) ${B_TARGET:-} ${R_TARGET:-}" || true
+fi
+
+# Optionally build backend JAR on host
+if [ ${BUILD_JAR} -eq 1 ]; then
+  echo "[agent-e2e] Building backend JAR on host (./gradlew -x cyclonedxBom bootJar) ..."
+  (cd backend && ./gradlew -x cyclonedxBom bootJar --no-daemon)
+fi
+
+# Verify backend JAR exists
+JAR=$(ls -1 backend/build/libs/*.jar 2>/dev/null | grep -v -- '-plain.jar' | head -n1 || true)
+if [ -z "${JAR}" ]; then
+  echo "[agent-e2e] ERROR: Backend JAR not found at backend/build/libs. Build it first:"
+  echo "             cd backend && ./gradlew bootJar"
+  exit 1
+fi
+
+# Build Playwright image if needed
+if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
+  echo "[agent-e2e] Building Playwright image ..."
+  docker build -f e2e/Dockerfile -t "${IMAGE}" .
+fi
+
+# Pass-through any extra args (after filtering) to 'npm test --'
+E2E_TEST_ARGS="${PASS_ARGS[*]:-}"
+
+echo "[agent-e2e] Starting tests in Docker (this may take ~20–40s) ..."
+docker run --rm --user root --add-host=host.docker.internal:host-gateway --shm-size=1g \
+  -e SPRING_DATASOURCE_URL="jdbc:mariadb://${DB_HOST}:${DB_PORT}/goldmanager" \
+  -e E2E_TEST_ARGS="${E2E_TEST_ARGS:-}" \
+  -e VERBOSE="${VERBOSE}" \
+  -v "${PWD}":/work -w /work \
+  -p 8080:8080 \
+  "${IMAGE}" bash -lc '
+set -euo pipefail
+[ "${VERBOSE:-0}" = "1" ] && set -x || true
+cd /work/e2e
+# Require existing node_modules to avoid network installs in restricted envs
+if [ ! -d node_modules/@playwright/test ]; then
+  echo "[agent-e2e] ERROR: e2e/node_modules missing. Please run: (cd e2e && npm ci)" >&2
+  exit 2
+fi
+
+mkdir -p /work/e2e/test-results /work/e2e/test-results-html
+chown -R root:root /work/e2e/test-results /work/e2e/test-results-html || true
+
+cd /work
+JAR=$(ls -1 backend/build/libs/*.jar | grep -v -- -plain.jar | head -n1)
+JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!"
+(java $JAVA_OPTS -jar "$JAR" > /work/e2e/app.log 2>&1 &) 
+
+echo "[agent-e2e] Waiting for app health at http://localhost:8080/api/health ..."
+for i in $(seq 1 120); do
+  if curl -sf http://localhost:8080/api/health >/dev/null 2>&1; then
+    break
+  fi
+  [ "${VERBOSE:-0}" = "1" ] && echo "[agent-e2e] waiting... ($i)" || true
+  sleep 1
+done
+
+cd /work/e2e
+echo "[agent-e2e] Running Playwright tests ..."
+npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS:-} || {
+  code=$?; echo "[agent-e2e] Tests failed. Last 200 lines of app.log:";
+  tail -n 200 /work/e2e/app.log || true; exit $code; }
+'
+
+exit $?

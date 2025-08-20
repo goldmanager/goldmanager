@@ -91,12 +91,74 @@ When backend functions are added or changed, corresponding unit or integration t
 Include any relevant outputs in the PR description.
 
 ### E2E (Playwright)
-- Location: `e2e/`
-- DB: The launcher attempts to auto-start MariaDB via Docker. If Docker isn’t available, start it manually with `docker compose -f backend/dev-env/compose.yaml up -d`.
-- Install and run:
-  - `cd e2e && npm install`
-  - `npm test` (headless) or `npm run test:ui` (browsers installed via `pretest`)
+- Location: `e2e/`.
+- Use shell script to run in docker. This also sets up playwright in a docker container and runs a build of backend and frontend.
+  - `./e2e/run-in-docker.sh`
 - The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
+ 
+### Preferred E2E Execution for Agents (network-restricted)
+
+Use the helper script `e2e/run-in-docker-agent.sh`. It runs tests fully inside the prebuilt Playwright Docker image while reusing the already-built backend JAR and the host E2E MariaDB. This avoids in-container downloads and host browser dependencies.
+
+Wrapper capabilities:
+- Starts E2E MariaDB (or resets it with `--clean-db`).
+- Optionally builds the backend JAR on host (`--build-jar`) with CycloneDX disabled.
+- Fixes permission issues on host artifacts (`--fix-perms`, `--fix-perms-backend`, `--fix-perms-reports`).
+- Runs the backend JAR inside the Playwright image and waits for `GET /api/health`.
+- Executes Playwright using `e2e/playwright.no-server.config.ts`.
+- For quick reference: `bash ./e2e/run-in-docker-agent.sh --help` prints usage, options and examples.
+- Use `--verbose` to print additional logs (enables shell xtrace in the container and tails the backend app.log on failures).
+
+Prerequisites:
+- E2E DB is up on the host (MariaDB): `docker compose -f e2e/dev-db/compose.yaml up -d`
+- Backend JAR is already built on the host at `backend/build/libs/*.jar` (non `-plain`). If not present, build it outside the restricted agent: `cd backend && ./gradlew bootJar`.
+- Playwright image exists: `goldmanager/e2e-playwright:local` (build once if missing: `docker build -f e2e/Dockerfile -t goldmanager/e2e-playwright:local .`).
+- E2E dependencies installed once on host (to avoid network in container): `cd e2e && npm ci`
+  - Note: If you previously built the backend inside a container, `backend/build` files may be owned by root. If `--build-jar` fails with permission errors, fix ownership: `sudo chown -R "$USER":"$USER" backend/build`.
+
+Run tests (all browsers) from the repo root:
+
+```
+bash ./e2e/run-in-docker-agent.sh
+```
+
+Examples with extra args (passed to Playwright):
+
+```
+# Only Chromium
+bash ./e2e/run-in-docker-agent.sh -- --project=chromium
+
+# Single spec with UI
+bash ./e2e/run-in-docker-agent.sh -- tests/user-management.spec.ts --ui
+
+# Build backend JAR first, then run all tests
+bash ./e2e/run-in-docker-agent.sh --build-jar
+
+# Fix permissions on backend/build and report dirs, then run Chromium only
+bash ./e2e/run-in-docker-agent.sh --fix-perms -- --project=chromium
+
+# Only fix backend/build permissions, then run Chromium
+bash ./e2e/run-in-docker-agent.sh --fix-perms-backend -- --project=chromium
+
+# Only fix report directories, then run Chromium
+bash ./e2e/run-in-docker-agent.sh --fix-perms-reports -- --project=chromium
+
+# Force a full clean E2E DB (down -v; up -d) before tests
+bash ./e2e/run-in-docker-agent.sh --clean-db
+
+# Verbose run to aid debugging
+bash ./e2e/run-in-docker-agent.sh --verbose -- --project=chromium
+
+To see all options at any time:
+
+```
+bash ./e2e/run-in-docker-agent.sh --help
+```
+```
+
+Notes:
+- The config `e2e/playwright.no-server.config.ts` disables Playwright’s webServer and uses the container-local app at `http://localhost:8080`. You can override `baseURL` by setting `E2E_BASE_URL` in that config if needed.
+- The script ensures test report directories are writable on the bind mount to avoid EACCES on `.last-run.json`.
 - E2E DB management:
   - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (default port 3317).
   - The Docker runner ensures a clean DB before tests. Default is a fast SQL reset (drop/recreate `goldmanager` DB for user `myuser`). Set `E2E_DB_RESET_MODE=compose` to perform a full `docker compose down -v && up -d` reset.

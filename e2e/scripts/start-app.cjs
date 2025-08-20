@@ -115,7 +115,13 @@ async function buildFrontendAndSync() {
   const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const lockfile = path.join(frontendDir, 'package-lock.json');
   if (fs.existsSync(lockfile)) {
-    run(npmCmd, ['ci'], { cwd: frontendDir });
+    try {
+      // Prefer reproducible installs; fall back to install if lock is out of sync
+      run(npmCmd, ['ci'], { cwd: frontendDir });
+    } catch (e) {
+      err('npm ci failed (lockfile mismatch or environment). Falling back to npm install...');
+      run(npmCmd, ['install'], { cwd: frontendDir });
+    }
   } else {
     run(npmCmd, ['install'], { cwd: frontendDir });
   }
