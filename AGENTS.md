@@ -124,6 +124,9 @@ bash ./e2e/run-in-docker-agent.sh -- tests/user-management.spec.ts --ui
 
 # Build backend JAR first, then run all tests
 bash ./e2e/run-in-docker-agent.sh --build-jar
+
+# Fix permissions on backend/build and report dirs, then run Chromium only
+bash ./e2e/run-in-docker-agent.sh --fix-perms -- --project=chromium
 ```
 
 Notes:

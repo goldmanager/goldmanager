@@ -14,11 +14,15 @@ DB_PORT="${E2E_DB_PORT:-3317}"
 
 # Parse flags
 BUILD_JAR=0
+FIX_PERMS=0
 PASS_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --build-jar)
       BUILD_JAR=1
+      ;;
+    --fix-perms)
+      FIX_PERMS=1
       ;;
     *)
       PASS_ARGS+=("$arg")
@@ -32,10 +36,18 @@ echo "[agent-e2e] Using image: ${IMAGE}"
 echo "[agent-e2e] Ensuring E2E DB is running via ${COMPOSE_FILE} ..."
 docker compose -f "${COMPOSE_FILE}" up -d >/dev/null
 
+# Optionally fix permissions for host build artifacts and report dirs using a root container
+if [ ${FIX_PERMS} -eq 1 ]; then
+  echo "[agent-e2e] Fixing permissions on backend/build and e2e/test-results* via root container ..."
+  docker run --rm -v "${PWD}":/work alpine:3.19 sh -lc "\
+    mkdir -p /work/backend/build /work/e2e/test-results /work/e2e/test-results-html && \
+    chown -R $(id -u):$(id -g) /work/backend/build /work/e2e/test-results /work/e2e/test-results-html" || true
+fi
+
 # Optionally build backend JAR on host
 if [ ${BUILD_JAR} -eq 1 ]; then
-  echo "[agent-e2e] Building backend JAR on host (./gradlew bootJar) ..."
-  (cd backend && ./gradlew bootJar --no-daemon)
+  echo "[agent-e2e] Building backend JAR on host (./gradlew -x cyclonedxBom bootJar) ..."
+  (cd backend && ./gradlew -x cyclonedxBom bootJar --no-daemon)
 fi
 
 # Verify backend JAR exists
@@ -58,6 +70,7 @@ E2E_TEST_ARGS="${PASS_ARGS[*]:-}"
 echo "[agent-e2e] Starting tests in Docker (this may take ~20–40s) ..."
 docker run --rm --user root --add-host=host.docker.internal:host-gateway --shm-size=1g \
   -e SPRING_DATASOURCE_URL="jdbc:mariadb://${DB_HOST}:${DB_PORT}/goldmanager" \
+  -e E2E_TEST_ARGS="${E2E_TEST_ARGS:-}" \
   -v "${PWD}":/work -w /work \
   -p 8080:8080 \
   "${IMAGE}" bash -lc '
@@ -84,7 +97,7 @@ done
 
 cd /work/e2e
 echo "[agent-e2e] Running Playwright tests ..."
-npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS}
+npm test -- --config=playwright.no-server.config.ts ${E2E_TEST_ARGS:-}
 '
 
 exit $?
