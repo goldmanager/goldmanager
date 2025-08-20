@@ -92,14 +92,45 @@ if [ "${RESET_MODE}" = "drop" ]; then
 fi
 
 docker run --rm --user root ${EXTRA_HOST} --shm-size=1g \
-  -v "${PWD}":/work -w /work/e2e \
+  -v "${PWD}":/work -w /work \
   -e E2E_DB_HOST="${DB_HOST}" -e E2E_DB_PORT="${DB_PORT}" \
   -e E2E_DB_WAIT_MS -e E2E_HEALTH_TIMEOUT_MS -e E2E_WEBSERVER_TIMEOUT_MS \
   -e SPRING_DATASOURCE_URL="jdbc:mariadb://${DB_HOST}:${DB_PORT}/goldmanager" \
   -p 8080:8080 \
   "${IMAGE}" bash -lc '
 set -euo pipefail
-# Prebaked image already has JDK 21, Node 20.19 and Playwright deps/browsers
-npm ci
-npm test
+# Use existing node_modules to avoid network installs when available
+cd /work/e2e
+if [ -d node_modules/@playwright/test ]; then
+  echo "[e2e-docker] Using existing node_modules for Playwright. Skipping npm ci."
+else
+  echo "[e2e-docker] node_modules missing; running npm ci ..."
+  npm ci
+fi
+
+# Start backend from prebuilt JAR if present and wait for health
+cd /work
+JAR=$(ls -1 backend/build/libs/*.jar 2>/dev/null | grep -v -- '-plain.jar' | head -n1 || true)
+if [ -z "${JAR}" ]; then
+  echo "[e2e-docker] ERROR: Backend JAR not found at backend/build/libs. Build it first (./gradlew bootJar)." >&2
+  exit 1
+fi
+echo "[e2e-docker] Starting backend: ${JAR}"
+JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!"
+(java ${JAVA_OPTS} -jar "${JAR}" >/work/e2e/app.log 2>&1 &) 
+
+echo "[e2e-docker] Waiting for app health endpoint ..."
+deadline=$((SECONDS + ${E2E_HEALTH_TIMEOUT_MS:-600000} / 1000))
+until curl -sf http://localhost:8080/api/health >/dev/null 2>&1; do
+  if (( SECONDS > deadline )); then
+    echo "[e2e-docker] App failed to become healthy in time" >&2
+    tail -n 200 /work/e2e/app.log || true
+    exit 1
+  fi
+  sleep 2
+done
+echo "[e2e-docker] App is healthy; running Playwright tests ..."
+
+cd /work/e2e
+node node_modules/@playwright/test/cli.js test --config=playwright.no-server.config.ts
 '
