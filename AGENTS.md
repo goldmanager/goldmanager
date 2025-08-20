@@ -91,12 +91,51 @@ When backend functions are added or changed, corresponding unit or integration t
 Include any relevant outputs in the PR description.
 
 ### E2E (Playwright)
-- Location: `e2e/`
-- DB: The launcher attempts to auto-start MariaDB via Docker. If Docker isn’t available, start it manually with `docker compose -f backend/dev-env/compose.yaml up -d`.
-- Install and run:
-  - `cd e2e && npm install`
-  - `npm test` (headless) or `npm run test:ui` (browsers installed via `pretest`)
+- Location: `e2e/`.
+- Use shell script to run in docker. This also sets up playwright in a docker container and runs a build of backend and frontend.
+  - `./e2e/run-in-docker.sh`
 - The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
+ 
+### Preferred E2E Execution for Agents (network-restricted)
+
+When running inside this agent environment with restricted network, prefer running tests fully inside the prebuilt Playwright Docker image while reusing the already-built backend JAR and the host E2E MariaDB. This avoids in-container downloads and host browser dependencies.
+
+Prerequisites:
+- E2E DB is up on the host (MariaDB): `docker compose -f e2e/dev-db/compose.yaml up -d`
+- Backend JAR is already built on the host at `backend/build/libs/*.jar` (non `-plain`). If not present, build it outside the restricted agent: `cd backend && ./gradlew bootJar`.
+- Playwright image exists: `goldmanager/e2e-playwright:local` (build once if missing: `docker build -f e2e/Dockerfile -t goldmanager/e2e-playwright:local .`).
+
+Run tests (all browsers) from the repo root:
+
+```
+docker run --rm --user root --add-host=host.docker.internal:host-gateway --shm-size=1g \
+  -e SPRING_DATASOURCE_URL="jdbc:mariadb://host.docker.internal:3317/goldmanager" \
+  -v "$PWD":/work -w /work \
+  -p 8080:8080 \
+  goldmanager/e2e-playwright:local bash -lc '
+set -euo pipefail
+cd /work/e2e
+# Use existing node_modules if present; otherwise install once
+if [ ! -d node_modules/@playwright/test ]; then npm ci; fi
+# Ensure report dirs are writable (volume perms may vary)
+mkdir -p /work/e2e/test-results /work/e2e/test-results-html
+chown -R root:root /work/e2e/test-results /work/e2e/test-results-html || true
+# Start backend from host-built JAR inside this container and wait for health
+cd /work
+JAR=$(ls -1 backend/build/libs/*.jar | grep -v -- -plain.jar | head -n1)
+JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!"
+(java $JAVA_OPTS -jar "$JAR" > /work/e2e/app.log 2>&1 &) 
+for i in $(seq 1 120); do curl -sf http://localhost:8080/api/health >/dev/null 2>&1 && break || sleep 1; done
+# Run the tests against localhost without starting another webServer
+cd /work/e2e
+npm test -- --config=playwright.no-server.config.ts
+'
+```
+
+Notes:
+- The config `e2e/playwright.no-server.config.ts` disables Playwright’s webServer and uses `baseURL` from the running app at `http://localhost:8080` inside the container. You can override `baseURL` with `E2E_BASE_URL` if needed.
+- This flow keeps DB and test reports on the host via the bind mount, while running browsers inside the container (no host-level browser deps required).
+- If permission errors occur on `e2e/test-results*`, the command above already sets them writable inside the container.
 - E2E DB management:
   - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (default port 3317).
   - The Docker runner ensures a clean DB before tests. Default is a fast SQL reset (drop/recreate `goldmanager` DB for user `myuser`). Set `E2E_DB_RESET_MODE=compose` to perform a full `docker compose down -v && up -d` reset.
