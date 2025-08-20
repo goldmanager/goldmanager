@@ -100,6 +100,14 @@ Include any relevant outputs in the PR description.
 
 Use the helper script `e2e/run-in-docker-agent.sh`. It runs tests fully inside the prebuilt Playwright Docker image while reusing the already-built backend JAR and the host E2E MariaDB. This avoids in-container downloads and host browser dependencies.
 
+Wrapper capabilities:
+- Starts E2E MariaDB (or resets it with `--clean-db`).
+- Optionally builds the backend JAR on host (`--build-jar`) with CycloneDX disabled.
+- Fixes permission issues on host artifacts (`--fix-perms`, `--fix-perms-backend`, `--fix-perms-reports`).
+- Runs the backend JAR inside the Playwright image and waits for `GET /api/health`.
+- Executes Playwright using `e2e/playwright.no-server.config.ts`.
+- For quick reference: `bash ./e2e/run-in-docker-agent.sh --help` prints usage, options and examples.
+
 Prerequisites:
 - E2E DB is up on the host (MariaDB): `docker compose -f e2e/dev-db/compose.yaml up -d`
 - Backend JAR is already built on the host at `backend/build/libs/*.jar` (non `-plain`). If not present, build it outside the restricted agent: `cd backend && ./gradlew bootJar`.
@@ -136,6 +144,12 @@ bash ./e2e/run-in-docker-agent.sh --fix-perms-reports -- --project=chromium
 
 # Force a full clean E2E DB (down -v; up -d) before tests
 bash ./e2e/run-in-docker-agent.sh --clean-db
+
+To see all options at any time:
+
+```
+bash ./e2e/run-in-docker-agent.sh --help
+```
 ```
 
 Notes:

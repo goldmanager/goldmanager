@@ -18,6 +18,7 @@ FIX_PERMS=0
 FIX_PERMS_BACKEND=0
 FIX_PERMS_REPORTS=0
 CLEAN_DB=0
+SHOW_HELP=0
 PASS_ARGS=()
 for arg in "$@"; do
   case "$arg" in
@@ -36,11 +37,44 @@ for arg in "$@"; do
     --clean-db)
       CLEAN_DB=1
       ;;
+    -h|--help)
+      SHOW_HELP=1
+      ;;
     *)
       PASS_ARGS+=("$arg")
       ;;
   esac
 done
+
+if [ ${SHOW_HELP} -eq 1 ]; then
+  cat <<'USAGE'
+Agent-friendly Playwright E2E runner
+
+Usage:
+  bash ./e2e/run-in-docker-agent.sh [options] [--] [playwright-args]
+
+Options:
+  --build-jar           Build backend JAR on host (./gradlew -x cyclonedxBom bootJar)
+  --clean-db            Reset E2E DB (docker compose down -v; up -d)
+  --fix-perms           Fix ownership for backend/build and e2e/test-results*
+  --fix-perms-backend   Fix ownership for backend/build only
+  --fix-perms-reports   Fix ownership for e2e/test-results*
+  -h, --help            Show this help
+
+Notes:
+  - Requires host E2E deps installed once: (cd e2e && npm ci)
+  - Reuses prebuilt backend JAR at backend/build/libs (non -plain). Use --build-jar if missing.
+  - Runs inside Playwright Docker image and uses playwright.no-server.config.ts
+  - Pass extra Playwright args after --, e.g.: -- --project=chromium
+
+Examples:
+  bash ./e2e/run-in-docker-agent.sh
+  bash ./e2e/run-in-docker-agent.sh -- --project=chromium
+  bash ./e2e/run-in-docker-agent.sh --build-jar
+  bash ./e2e/run-in-docker-agent.sh --clean-db --fix-perms-reports -- --ui tests/login.spec.ts
+USAGE
+  exit 0
+fi
 
 echo "[agent-e2e] Using image: ${IMAGE}"
 
