@@ -45,12 +45,13 @@ jobs:
             e2e/package-lock.json
             frontend/package-lock.json
 
-      - name: Install Playwright browsers
-        uses: microsoft/playwright-github-action@v1
-
       - name: Install E2E dependencies
         working-directory: e2e
         run: npm ci
+
+      - name: Install Playwright system deps and browsers
+        working-directory: e2e
+        run: npx -y @playwright/test@1.54.2 install --with-deps
 
       - name: Run Playwright tests
         working-directory: e2e
@@ -77,4 +78,3 @@ jobs:
           name: e2e-last-run
           path: e2e/test-results/.last-run.json
           if-no-files-found: ignore
-
