@@ -250,8 +250,11 @@ public class MetalPriceCollector {
 										}
 
 									}
+									logger.info("Updated PriceHistory for material {}", material.getName());
+								} else {
+									logger.error("Could not fetch history for material {}, response code: {}, body: {}",
+											material.getName(), response.statusCode(), body);
 								}
-								logger.info("Updated PriceHistory for material {}", material.getName());
 							} else {
 								logger.error("Received ResponseCode: {}, body: {}", response.statusCode(),
 										response.body());
