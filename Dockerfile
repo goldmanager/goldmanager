@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY frontend/package*.json ./
 
-RUN npm install
+RUN npm ci
 
 # Generate SBOM for frontend dependencies
 RUN npx --yes @cyclonedx/cyclonedx-npm -o bom-frontend.cdx.json

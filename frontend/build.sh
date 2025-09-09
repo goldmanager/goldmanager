@@ -1,6 +1,6 @@
 #!/bin/sh
 rm -rf dist/
-npm install
+npm ci
 npm run build
 rm ../backend/src/main/resources/static/ -rf
 mkdir ../backend/src/main/resources/static/
