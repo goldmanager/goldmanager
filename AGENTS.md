@@ -45,7 +45,7 @@ If the user requests launching of playwright tests without any code changes, the
 * Install dependencies and run the linter or development server:
   ```bash
   cd frontend
-  npm install
+  npm ci
   npm run lint    # Lint source files
   npm run dev     # Dev server
   npm run build   # Production build
@@ -55,7 +55,7 @@ If the user requests launching of playwright tests without any code changes, the
 
 ### Docker Image
 * The root `Dockerfile` builds both projects in a multi-stage process:
-  1. Node stage to run `npm install`, create a CycloneDX SBOM for the
+  1. Node stage to run `npm ci`, create a CycloneDX SBOM for the
      frontend with `npx @cyclonedx/cyclonedx-npm`, and run `npm run build`.
   2. Gradle stage to build the backend using `gradle clean bootJar cyclonedxBom`
      and copy the frontend build into `src/main/resources/static`. The resulting
