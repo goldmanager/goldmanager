@@ -72,6 +72,8 @@
       <price-chart
         v-if="priceHistories.length>0"
         v-model="priceHistories"
+        :visible="visibleDatasets"
+        @legend-visibility-change="onLegendVisibilityChange"
       />
       <div v-else>
         No Price History available in selected date range.
@@ -99,6 +101,7 @@ export default {
 		currentMetal:'',
 		priceHistories:[],
 		dateRange: this.getDefaultDateRange(),
+        visibleDatasets: { totalPrice: true, metalPrice: true },
 
     };
 
@@ -173,6 +176,7 @@ computed:{
 
   mounted() {
 	this.currentMetal = this.getCurrentMetal();
+	this.visibleDatasets = this.loadVisibility(this.currentMetal);
 	this.fetchData();
   },  
 methods: {
@@ -224,8 +228,39 @@ methods: {
 	setCurrentFilter(event){
 		localStorage.setItem("PriceHistoryCurrentMetal",event.target.value);
 		this.currentMetal=event.target.value;
+		this.visibleDatasets = this.loadVisibility(this.currentMetal);
 		this.fetchData();
 	},
+    loadVisibility(metalId){
+        try{
+            if(!metalId){
+                return { totalPrice: true, metalPrice: true };
+            }
+            const raw = localStorage.getItem(`PriceHistoryVisibility:${metalId}`);
+            if(!raw){
+                return { totalPrice: true, metalPrice: true };
+            }
+            const parsed = JSON.parse(raw);
+            const total = typeof parsed.totalPrice === 'boolean' ? parsed.totalPrice : true;
+            const metal = typeof parsed.metalPrice === 'boolean' ? parsed.metalPrice : true;
+            return { totalPrice: total, metalPrice: metal };
+        }catch{
+            return { totalPrice: true, metalPrice: true };
+        }
+    },
+    saveVisibility(metalId, visibility){
+        try{
+            if(!metalId){ return; }
+            localStorage.setItem(`PriceHistoryVisibility:${metalId}` , JSON.stringify({
+                totalPrice: !!visibility.totalPrice,
+                metalPrice: !!visibility.metalPrice
+            }));
+        }catch{ /* ignore */ }
+    },
+    onLegendVisibilityChange(visibility){
+        this.visibleDatasets = visibility;
+        this.saveVisibility(this.currentMetal, visibility);
+    },
 	dateChanged(){
 			this.fetchPriceHistories();		
 	},
@@ -242,6 +277,8 @@ methods: {
 			if((!this.currentMetal || this.currentMetal == '') && this.metals.length>0){
 				this.currentMetal=this.metals[0].id;
 			}
+			// Ensure visibility is loaded for the selected metal
+			this.visibleDatasets = this.loadVisibility(this.currentMetal);
 			if(this.metals.length === 0){ 
 				throw new Error("No metal available");
 			}
