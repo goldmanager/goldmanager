@@ -21,4 +21,22 @@ describe('PriceChart', () => {
     expect(chartData.datasets[0].data).toEqual([10, 15])
     expect(chartData.datasets[1].data).toEqual([5, 8])
   })
+
+  it('applies visibility prop to dataset hidden flags', () => {
+    const prices = [
+      { date: '2024-01-01', totalPrice: 10, metalPrice: 5 },
+      { date: '2024-01-02', totalPrice: 15, metalPrice: 8 }
+    ]
+    const wrapper = mount(PriceChart, {
+      props: { modelValue: prices, visible: { totalPrice: false, metalPrice: true } },
+      global: {
+        stubs: {
+          'line-chart': true
+        }
+      }
+    })
+    const chartData = wrapper.vm.chartData
+    expect(chartData.datasets[0].hidden).toBe(true)
+    expect(chartData.datasets[1].hidden).toBe(false)
+  })
 })
