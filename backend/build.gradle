@@ -5,6 +5,7 @@ plugins {
 	id 'org.asciidoctor.jvm.convert' version '4.0.5'
 	id 'jacoco' 
 	id 'org.cyclonedx.bom' version '2.4.0'
+	id 'eclipse'
 
 }
 
@@ -32,6 +33,11 @@ compileJava.dependsOn tasks.named('generateVersionProperties')
 tasks.named("classes").configure {
     dependsOn tasks.named('generateVersionProperties')
 }
+
+// Ensure generated version.properties is available when using IDEs/Eclipse
+tasks.named('bootRun') { dependsOn tasks.named('generateVersionProperties') }
+tasks.named('eclipseClasspath') { dependsOn tasks.named('generateVersionProperties') }
+tasks.named('eclipse') { dependsOn tasks.named('generateVersionProperties') }
  
  jacocoTestReport {
        dependsOn test // Ensure tests run before generating the report
