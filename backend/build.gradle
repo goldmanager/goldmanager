@@ -4,7 +4,8 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.asciidoctor.jvm.convert' version '4.0.5'
 	id 'jacoco' 
-	id 'org.cyclonedx.bom' version '2.3.1'
+	id 'org.cyclonedx.bom' version '2.4.0'
+	id 'eclipse'
 
 }
 
@@ -14,35 +15,29 @@ group = 'de.goldmanager'
 version = '1.0.4'
 compileJava.options.encoding = 'UTF-8'
 
-task generateVersionProperties {
-    def outputDir = file("$buildDir/generated-resources")
-    def versionFile = new File(outputDir, "version.properties")
-
-    outputs.file(versionFile)
-    doLast {
-        outputDir.mkdirs()
-        def properties = new Properties()
-        properties.setProperty('version', project.version.toString())
-        versionFile.withWriter { writer ->
-            properties.store(writer, null)
-        }
-      
-    }
+// Generate version.properties with configuration-cache friendly task
+tasks.register('generateVersionProperties', WriteProperties) {
+    // write to build/generated-resources/version.properties
+    destinationFile = layout.buildDirectory.file("generated-resources/version.properties")
+    // use provider to avoid execution-time project access
+    property('version', providers.provider { version.toString() })
 }
-sourceSets.main.resources.srcDir("$buildDir/generated-resources")
+
+sourceSets.main.resources.srcDir(layout.buildDirectory.dir("generated-resources"))
 tasks.named("processResources").configure {
-    dependsOn generateVersionProperties
+    dependsOn tasks.named('generateVersionProperties')
 }
 
-tasks.named("generateVersionProperties").configure {
-    outputs.dir("$buildDir/generated-resources")
-}
-
-compileJava.dependsOn generateVersionProperties
+compileJava.dependsOn tasks.named('generateVersionProperties')
 
 tasks.named("classes").configure {
-    dependsOn generateVersionProperties
+    dependsOn tasks.named('generateVersionProperties')
 }
+
+// Ensure generated version.properties is available when using IDEs/Eclipse
+tasks.named('bootRun') { dependsOn tasks.named('generateVersionProperties') }
+tasks.named('eclipseClasspath') { dependsOn tasks.named('generateVersionProperties') }
+tasks.named('eclipse') { dependsOn tasks.named('generateVersionProperties') }
  
  jacocoTestReport {
        dependsOn test // Ensure tests run before generating the report
@@ -154,4 +149,35 @@ tasks.check {
 tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
 	dependsOn test
+}
+
+// Ensure CycloneDX BOM output path and format are stable across plugin versions
+// The Dockerfile copies build/reports/application.cdx.json from the backend build stage.
+// Plugin 2.4.0 may change defaults, so pin the task configuration explicitly.
+tasks.named('cyclonedxBom') {
+    // Generate JSON and place it at the expected path used by Dockerfile
+    outputFormat = 'json'
+    // Destination is a directory; outputName controls the filename (without extension)
+    destination = file("$buildDir/reports")
+    outputName = 'application'
+}
+
+// Provide a stable file at build/reports/application.cdx.json for Dockerfile
+tasks.register('copyCycloneDxForDocker', Copy) {
+    dependsOn tasks.named('cyclonedxBom')
+    from(file("$buildDir/reports/application.json"))
+    into(file("$buildDir/reports"))
+    rename { _ -> "application.cdx.json" }
+}
+
+// Ensure the stable file is present when building the JAR or invoking cyclonedxBom
+tasks.named('bootJar') {
+    dependsOn tasks.named('copyCycloneDxForDocker')
+}
+
+// Avoid resource copy failures if multiple sources provide same path
+// (e.g., META-INF/sbom/application.cdx.json from CycloneDX plugin integration)
+tasks.named('processResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn tasks.named('copyCycloneDxForDocker')
 }
