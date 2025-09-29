@@ -13,7 +13,7 @@
     "chart.js": "^4.5.0",
     "core-js": "^3.43.0",
     "element-plus": "^2.11.3",
-    "vue": "^3.5.17",
+    "vue": "^3.5.22",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.5.1",
     "vuex": "^4.1.0"
