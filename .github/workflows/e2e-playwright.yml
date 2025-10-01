@@ -8,6 +8,11 @@ jobs:
     name: Run Playwright E2E
     runs-on: ubuntu-latest
 
+    #Only one concurrent run
+    concurrency:
+      group: e2e-tests-${{ github.workflow }}
+      cancel-in-progress: false
+
     services:
       mariadb:
         image: mariadb:11.4
