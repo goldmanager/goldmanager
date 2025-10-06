@@ -10,6 +10,7 @@ plugins {
 }
 
 import java.util.Properties
+import org.cyclonedx.gradle.CyclonedxAggregateTask
 
 group = 'de.goldmanager'
 version = '1.0.4'
@@ -151,15 +152,11 @@ tasks.named('asciidoctor') {
 	dependsOn test
 }
 
-// Ensure CycloneDX BOM output path and format are stable across plugin versions
+// Ensure CycloneDX BOM output path is stable across plugin versions.
 // The Dockerfile copies build/reports/application.cdx.json from the backend build stage.
-// Plugin 2.4.0 may change defaults, so pin the task configuration explicitly.
-tasks.named('cyclonedxBom') {
-    // Generate JSON and place it at the expected path used by Dockerfile
-    outputFormat = 'json'
-    // Destination is a directory; outputName controls the filename (without extension)
-    destination = file("$buildDir/reports")
-    outputName = 'application'
+tasks.named('cyclonedxBom', CyclonedxAggregateTask) { task ->
+    task.jsonOutput.set(layout.buildDirectory.file("reports/application.json"))
+    task.xmlOutput.set(layout.buildDirectory.file("reports/application.xml"))
 }
 
 // Provide a stable file at build/reports/application.cdx.json for Dockerfile
