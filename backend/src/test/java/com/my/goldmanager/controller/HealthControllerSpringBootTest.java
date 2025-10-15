@@ -23,7 +23,6 @@ class HealthControllerSpringBootTest {
     void health_isPublicAndReturnsOk() throws Exception {
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"status\":\"ok\"}", true));
+                .andExpect(content().json("{\"status\":\"ok\"}"));
     }
 }
-

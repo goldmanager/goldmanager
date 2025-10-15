@@ -36,6 +36,7 @@ If the user requests launching of playwright tests without any code changes, the
   cd backend
   ./gradlew test
   ```
+* Asciidoctor documentation is disabled by default to keep Gradle free of deprecation warnings. Enable it when needed via `./gradlew -PenableAsciidoctor asciidoctor`.
 * Development server can be started with `./gradlew bootRun` after the database from `dev-env/compose.yaml` is running.
 * Default admin user and default admin passwords can be set by running with java parameters -DAPP_DEFAULT_USER and -DAPP_DEFAULT_PASSWORD
 ** e.G. -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_PASSWORD=admin1Password!
