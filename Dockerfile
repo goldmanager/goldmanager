@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1.7
+ARG SYFT_IMAGE=anchore/syft:v1.13.0
+
 FROM node:20 as build-frontend
 
 WORKDIR /app
@@ -14,7 +16,7 @@ COPY frontend ./
 
 RUN npm run build
 
-FROM gradle:8-jdk21 as build-backend
+FROM gradle:9-jdk21 as build-backend
 
 WORKDIR /home/gradle/project
 
@@ -24,7 +26,7 @@ COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/sta
 
 RUN gradle clean bootJar cyclonedxBom -PskipTests
 
-FROM anchore/syft:latest as generate-sbom
+FROM ${SYFT_IMAGE} as generate-sbom
 WORKDIR /work
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar ./app.jar
 COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json ./application.cdx.json
