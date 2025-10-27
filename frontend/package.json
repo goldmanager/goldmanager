@@ -19,7 +19,7 @@
     "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.28.5",
     "@babel/eslint-parser": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@vitejs/plugin-vue": "^6.0.0",
