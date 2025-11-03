@@ -30,7 +30,7 @@
     "jsdom": "^27.0.1",
     "vite": "^7.1.9",
     "eslint-plugin-vue": "^10.5.1",
-    "jsdom": "^27.0.0",
+    "jsdom": "^27.1.0",
     "vite": "^7.1.11",
     "vitest": "^3.2.4",
     "vue-eslint-parser": "^10.2.0"
