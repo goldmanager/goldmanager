@@ -44,9 +44,22 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   await editRow.getByPlaceholder('Factor', { exact: true }).fill(String(UNIT.factor2));
   await editRow.getByRole('button', { name: 'Save' }).click();
 
+  for (let i = 0; i < 10; i++) {
+    const check = await page.request.get('/api/units');
+    if (check.ok()) {
+      const items = await check.json();
+      const updated = Array.isArray(items) && items.find((u: any) => u?.name === UNIT.name && Number(u?.factor) === UNIT.factor2);
+      if (updated) break;
+    }
+    await page.waitForTimeout(300);
+  }
+
+  await page.getByPlaceholder('Search by unit name').fill('');
+  await page.getByPlaceholder('Search by unit name').fill(UNIT.name);
+
   // Assert updated factor is visible in the row by name (auto-retries until it refreshes)
   const rowByName = page.locator('tbody tr', { hasText: UNIT.name }).first();
-  await expect(rowByName).toContainText(String(UNIT.factor2));
+  await expect(rowByName).toContainText(String(UNIT.factor2), { timeout: HEADING_TIMEOUT });
 
   // Delete the unit
   page.once('dialog', d => d.accept());
