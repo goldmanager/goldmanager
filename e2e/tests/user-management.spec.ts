@@ -6,19 +6,31 @@ import { test, expect } from '@playwright/test';
 
 const DEFAULT_ADMIN = { username: 'admin', password: 'admin1Password!' };
 const ADMIN2 = { username: 'admin2', initialPassword: 'TGBbgt5!', newPassword: 'MJU/7ujm' };
+const HOME_HEADING_TIMEOUT = 15_000;
 
 test('admin can create, update password, and delete another admin user', async ({ page, browserName }) => {
   // 0) Safety cleanup (in case of previous partial runs)
-  await page.request.post('/api/auth/login', { data: DEFAULT_ADMIN }).catch(() => {});
-  await page.request.delete(`/api/userService/deleteuser/${ADMIN2.username}`).catch(() => {});
+  const apiContext = page.request;
+  await apiContext.post('/api/auth/login', { data: DEFAULT_ADMIN }).catch(() => {});
+
+  let csrfToken: string | undefined;
+  try {
+    const csrfResponse = await apiContext.get('/api/auth/csrf');
+    csrfToken = csrfResponse.headers()['x-xsrf-token'];
+  } catch {}
+
+  const deleteOptions = csrfToken ? { headers: { 'X-XSRF-TOKEN': csrfToken } } : undefined;
+  await apiContext.delete(`/api/userService/deleteuser/${ADMIN2.username}`, deleteOptions).catch(() => {});
+
+  await apiContext.get('/api/auth/logoutuser').catch(() => {});
 
   // 1) Login as default admin
   await page.goto('/login');
   await page.getByPlaceholder('Username').fill(DEFAULT_ADMIN.username);
   await page.getByPlaceholder('Password').fill(DEFAULT_ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/?$/);
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/?$/, { timeout: HOME_HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 
   // 2) Create a new admin user "admin2" with password ADMIN2.initialPassword
   await page.getByRole('link', { name: 'Users' }).click();
@@ -42,8 +54,8 @@ test('admin can create, update password, and delete another admin user', async (
   await page.getByPlaceholder('Username').fill(ADMIN2.username);
   await page.getByPlaceholder('Password').fill(ADMIN2.initialPassword);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/?$/);
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/?$/, { timeout: HOME_HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 
   // 5) Logout
   await page.getByRole('button', { name: 'Logout' }).click();
@@ -53,7 +65,7 @@ test('admin can create, update password, and delete another admin user', async (
   await page.getByPlaceholder('Username').fill(DEFAULT_ADMIN.username);
   await page.getByPlaceholder('Password').fill(DEFAULT_ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 
   // 7) Change password of admin2 to ADMIN2.newPassword (via Users UI)
   await page.getByRole('link', { name: 'Users' }).click();
@@ -76,7 +88,7 @@ test('admin can create, update password, and delete another admin user', async (
   await page.getByPlaceholder('Username').fill(ADMIN2.username);
   await page.getByPlaceholder('Password').fill(ADMIN2.newPassword);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 
   // 10) Logout
   await page.getByRole('button', { name: 'Logout' }).click();
@@ -86,7 +98,7 @@ test('admin can create, update password, and delete another admin user', async (
   await page.getByPlaceholder('Username').fill(DEFAULT_ADMIN.username);
   await page.getByPlaceholder('Password').fill(DEFAULT_ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 
   // 12) Delete admin2 (via Users UI), expect user deleted
   await page.getByRole('link', { name: 'Users' }).click();

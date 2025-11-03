@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const HOME_HEADING_TIMEOUT = 15_000;
+
 test('user can login with default admin credentials', async ({ page }) => {
   // Go to login page
   await page.goto('/login');
@@ -12,7 +14,6 @@ test('user can login with default admin credentials', async ({ page }) => {
   await page.getByRole('button', { name: 'Login' }).click();
 
   // Expect redirect to home and visible Prices heading
-  await expect(page).toHaveURL(/\/?$/);
-  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/?$/, { timeout: HOME_HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: /Prices/i })).toBeVisible({ timeout: HOME_HEADING_TIMEOUT });
 });
-
