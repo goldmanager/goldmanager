@@ -29,7 +29,9 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
 
   // Create new unit in the add row
   const addRow = page.locator('tbody tr').first();
-  await addRow.getByPlaceholder('Name', { exact: true }).fill(UNIT.name);
+  const addRowNameInput = addRow.getByPlaceholder('Name', { exact: true });
+  await expect(addRowNameInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await addRowNameInput.fill(UNIT.name);
   await addRow.getByPlaceholder('Factor', { exact: true }).fill(String(UNIT.factor1));
   await addRow.getByRole('button', { name: 'Add New' }).click();
 
