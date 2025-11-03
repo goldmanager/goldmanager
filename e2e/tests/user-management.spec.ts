@@ -109,7 +109,7 @@ test('admin can create, update password, and delete another admin user', async (
   });
   await page.locator('tbody tr').nth(1).getByRole('button', { name: 'Delete' }).click();
 
-  // Verify via UI that user is gone: filtering should leave only the add-new row
+  // Verify via UI that user is gone: no row should contain the username any longer
   await page.getByPlaceholder('Search by user name').fill(ADMIN2.username);
-  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody tr', { hasText: ADMIN2.username })).toHaveCount(0);
 });

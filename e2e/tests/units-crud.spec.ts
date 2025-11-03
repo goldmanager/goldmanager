@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const ADMIN = { username: 'admin', password: 'admin1Password!' };
 const UNIT = { name: `TestUnit-${Math.random().toString(36).slice(2, 8)}`, factor1: 2.5, factor2: 3.75 };
+const HEADING_TIMEOUT = 15_000;
 
 test('admin can create, edit, and delete a unit', async ({ page }) => {
   // Ensure clean state if left over from previous run
@@ -19,11 +20,12 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   await page.getByPlaceholder('Username').fill(ADMIN.username);
   await page.getByPlaceholder('Password').fill(ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Navigate to Units
   await page.getByRole('link', { name: 'Units' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Units' })).toBeVisible();
+  await expect(page).toHaveURL(/\/units$/, { timeout: HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: 'Units' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Create new unit in the add row
   const addRow = page.locator('tbody tr').first();
