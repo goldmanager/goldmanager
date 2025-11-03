@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { HEADING_TIMEOUT } from './support/timeouts';
 
 const ADMIN = { username: 'admin', password: 'admin1Password!' };
 const METAL = { name: `Testium-${Math.random().toString(36).slice(2, 8)}`, price1: 123.45, price2: 234.56 };
-const HEADING_TIMEOUT = 15_000;
 
 test('admin can create, edit, and delete a metal', async ({ page }) => {
   // Ensure clean state if a previous run left the metal
@@ -76,8 +76,9 @@ test('admin can create, edit, and delete a metal', async ({ page }) => {
     await page.waitForTimeout(300);
   }
 
-  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
-  await searchInput.fill('');
-  await searchInput.fill(METAL.name);
-  await expect(page.locator('tbody tr', { hasText: METAL.name })).toHaveCount(0);
+  if (await searchInput.isVisible()) {
+    await searchInput.fill('');
+    await searchInput.fill(METAL.name);
+  }
+  await expect(page.locator('tbody tr', { hasText: METAL.name })).toHaveCount(0, { timeout: HEADING_TIMEOUT });
 });

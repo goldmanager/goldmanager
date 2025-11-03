@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { HEADING_TIMEOUT } from './support/timeouts';
 
 const ADMIN = { username: 'admin', password: 'admin1Password!' };
 const UNIT = { name: `TestUnit-${Math.random().toString(36).slice(2, 8)}`, factor1: 2.5, factor2: 3.75 };
-const HEADING_TIMEOUT = 15_000;
 
 test('admin can create, edit, and delete a unit', async ({ page }) => {
   // Ensure clean state if left over from previous run
@@ -36,7 +36,9 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   await addRow.getByRole('button', { name: 'Add New' }).click();
 
   // Filter and assert it shows up
-  await page.getByPlaceholder('Search by unit name').fill(UNIT.name);
+  const searchInput = page.getByPlaceholder('Search by unit name');
+  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await searchInput.fill(UNIT.name);
   const unitRow = page.locator('tbody tr').nth(1);
   await expect(unitRow).toContainText(UNIT.name);
 
@@ -56,8 +58,8 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
     await page.waitForTimeout(300);
   }
 
-  await page.getByPlaceholder('Search by unit name').fill('');
-  await page.getByPlaceholder('Search by unit name').fill(UNIT.name);
+  await searchInput.fill('');
+  await searchInput.fill(UNIT.name);
 
   // Assert updated factor is visible in the row by name (auto-retries until it refreshes)
   const rowByName = page.locator('tbody tr', { hasText: UNIT.name }).first();
@@ -79,5 +81,8 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   }
 
   // Assert there is no row containing the unit name (auto-retries while UI refreshes)
+  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await searchInput.fill('');
+  await searchInput.fill(UNIT.name);
   await expect(page.locator('tbody tr', { hasText: UNIT.name })).toHaveCount(0);
 });
