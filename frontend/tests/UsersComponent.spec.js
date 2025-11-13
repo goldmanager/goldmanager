@@ -4,12 +4,12 @@ import UsersComponent from '../src/components/UsersComponent.vue'
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve))
 
-const axiosMock = {
+const axiosMock = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
   put: vi.fn(),
   delete: vi.fn()
-}
+}))
 
 vi.mock('../src/axios', () => ({ default: axiosMock }))
 vi.mock('../src/utils/session', () => ({
