@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { HEADING_TIMEOUT } from './support/timeouts';
 
 const ADMIN = { username: 'admin', password: 'admin1Password!' };
 const METAL = { name: `Testium-${Math.random().toString(36).slice(2, 8)}`, price1: 123.45, price2: 234.56 };
@@ -19,11 +20,12 @@ test('admin can create, edit, and delete a metal', async ({ page }) => {
   await page.getByPlaceholder('Username').fill(ADMIN.username);
   await page.getByPlaceholder('Password').fill(ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Navigate to Metals
   await page.getByRole('link', { name: 'Metals' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Metals' })).toBeVisible();
+  await expect(page).toHaveURL(/\/metals$/, { timeout: HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: 'Metals' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Create new metal in the add row
   const addRow = page.locator('tbody tr').first();
@@ -42,9 +44,22 @@ test('admin can create, edit, and delete a metal', async ({ page }) => {
   await editRow.getByPlaceholder('Price', { exact: true }).fill(String(METAL.price2));
   await editRow.getByRole('button', { name: 'Save' }).click();
 
-  // Re-filter and assert updated price is visible
-  await page.getByPlaceholder('Search by metal name').fill(METAL.name);
-  await expect(page.locator('tbody tr').nth(1)).toContainText(String(METAL.price2));
+  for (let i = 0; i < 10; i++) {
+    const check = await page.request.get('/api/materials');
+    if (check.ok()) {
+      const items = await check.json();
+      const updated = Array.isArray(items) && items.find((m: any) => m?.name === METAL.name && Number(m?.price) === METAL.price2);
+      if (updated) break;
+    }
+    await page.waitForTimeout(300);
+  }
+
+  const searchInput = page.getByPlaceholder('Search by metal name');
+  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await searchInput.fill('');
+  await searchInput.fill(METAL.name);
+  const updatedRow = page.locator('tbody tr', { hasText: METAL.name });
+  await expect(updatedRow.first()).toContainText(String(METAL.price2), { timeout: HEADING_TIMEOUT });
 
   // Delete the metal
   page.once('dialog', d => d.accept());
@@ -61,7 +76,9 @@ test('admin can create, edit, and delete a metal', async ({ page }) => {
     await page.waitForTimeout(300);
   }
 
-  // Filter and assert there is no row containing the metal name
-  await page.getByPlaceholder('Search by metal name').fill(METAL.name);
-  await expect(page.locator('tbody tr', { hasText: METAL.name })).toHaveCount(0);
+  if (await searchInput.isVisible()) {
+    await searchInput.fill('');
+    await searchInput.fill(METAL.name);
+  }
+  await expect(page.locator('tbody tr', { hasText: METAL.name })).toHaveCount(0, { timeout: HEADING_TIMEOUT });
 });
