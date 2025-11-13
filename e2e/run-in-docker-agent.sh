@@ -156,13 +156,25 @@ JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_P
 (java $JAVA_OPTS -jar "$JAR" > /work/e2e/app.log 2>&1 &) 
 
 echo "[agent-e2e] Waiting for app health at http://localhost:8080/api/health ..."
-for i in $(seq 1 120); do
+HEALTH_TIMEOUT_MS=${E2E_HEALTH_TIMEOUT_MS:-600000}
+HEALTH_POLL_MS=${E2E_HEALTH_POLL_MS:-1000}
+MAX_ATTEMPTS=$(( (HEALTH_TIMEOUT_MS + HEALTH_POLL_MS - 1) / HEALTH_POLL_MS ))
+POLL_SLEEP=$(awk "BEGIN { printf \"%.3f\", ${HEALTH_POLL_MS}/1000 }")
+READY=0
+for i in $(seq 1 ${MAX_ATTEMPTS}); do
   if curl -sf http://localhost:8080/api/health >/dev/null 2>&1; then
+    READY=1
     break
   fi
-  [ "${VERBOSE:-0}" = "1" ] && echo "[agent-e2e] waiting... ($i)" || true
-  sleep 1
+  [ "${VERBOSE:-0}" = "1" ] && echo "[agent-e2e] waiting... (${i}/${MAX_ATTEMPTS})" || true
+  sleep "${POLL_SLEEP}"
 done
+
+if [ ${READY} -ne 1 ]; then
+  echo "[agent-e2e] ERROR: App health check failed after ${HEALTH_TIMEOUT_MS}ms" >&2
+  tail -n 200 /work/e2e/app.log || true
+  exit 3
+fi
 
 cd /work/e2e
 echo "[agent-e2e] Running Playwright tests ..."

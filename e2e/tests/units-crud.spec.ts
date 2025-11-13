@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { HEADING_TIMEOUT } from './support/timeouts';
 
 const ADMIN = { username: 'admin', password: 'admin1Password!' };
 const UNIT = { name: `TestUnit-${Math.random().toString(36).slice(2, 8)}`, factor1: 2.5, factor2: 3.75 };
@@ -19,20 +20,25 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   await page.getByPlaceholder('Username').fill(ADMIN.username);
   await page.getByPlaceholder('Password').fill(ADMIN.password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Prices' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Navigate to Units
   await page.getByRole('link', { name: 'Units' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Units' })).toBeVisible();
+  await expect(page).toHaveURL(/\/units$/, { timeout: HEADING_TIMEOUT });
+  await expect(page.getByRole('heading', { level: 1, name: 'Units' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
   // Create new unit in the add row
   const addRow = page.locator('tbody tr').first();
-  await addRow.getByPlaceholder('Name', { exact: true }).fill(UNIT.name);
+  const addRowNameInput = addRow.getByPlaceholder('Name', { exact: true });
+  await expect(addRowNameInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await addRowNameInput.fill(UNIT.name);
   await addRow.getByPlaceholder('Factor', { exact: true }).fill(String(UNIT.factor1));
   await addRow.getByRole('button', { name: 'Add New' }).click();
 
   // Filter and assert it shows up
-  await page.getByPlaceholder('Search by unit name').fill(UNIT.name);
+  const searchInput = page.getByPlaceholder('Search by unit name');
+  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await searchInput.fill(UNIT.name);
   const unitRow = page.locator('tbody tr').nth(1);
   await expect(unitRow).toContainText(UNIT.name);
 
@@ -42,9 +48,22 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   await editRow.getByPlaceholder('Factor', { exact: true }).fill(String(UNIT.factor2));
   await editRow.getByRole('button', { name: 'Save' }).click();
 
+  for (let i = 0; i < 10; i++) {
+    const check = await page.request.get('/api/units');
+    if (check.ok()) {
+      const items = await check.json();
+      const updated = Array.isArray(items) && items.find((u: any) => u?.name === UNIT.name && Number(u?.factor) === UNIT.factor2);
+      if (updated) break;
+    }
+    await page.waitForTimeout(300);
+  }
+
+  await searchInput.fill('');
+  await searchInput.fill(UNIT.name);
+
   // Assert updated factor is visible in the row by name (auto-retries until it refreshes)
   const rowByName = page.locator('tbody tr', { hasText: UNIT.name }).first();
-  await expect(rowByName).toContainText(String(UNIT.factor2));
+  await expect(rowByName).toContainText(String(UNIT.factor2), { timeout: HEADING_TIMEOUT });
 
   // Delete the unit
   page.once('dialog', d => d.accept());
@@ -62,5 +81,8 @@ test('admin can create, edit, and delete a unit', async ({ page }) => {
   }
 
   // Assert there is no row containing the unit name (auto-retries while UI refreshes)
+  await expect(searchInput).toBeVisible({ timeout: HEADING_TIMEOUT });
+  await searchInput.fill('');
+  await searchInput.fill(UNIT.name);
   await expect(page.locator('tbody tr', { hasText: UNIT.name })).toHaveCount(0);
 });
