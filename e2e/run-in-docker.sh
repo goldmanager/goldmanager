@@ -11,6 +11,7 @@ DB_PORT="${E2E_DB_PORT:-3317}"
 # Increased waits for fresh DB initialization and app startup
 export E2E_DB_WAIT_MS="${E2E_DB_WAIT_MS:-360000}"          # 6 minutes
 export E2E_HEALTH_TIMEOUT_MS="${E2E_HEALTH_TIMEOUT_MS:-600000}"  # 10 minutes
+export E2E_HEALTH_POLL_MS="${E2E_HEALTH_POLL_MS:-1000}"    # Default 1s checks
 export E2E_WEBSERVER_TIMEOUT_MS="${E2E_WEBSERVER_TIMEOUT_MS:-720000}" # 12 minutes
 
 # Linux compatibility: map host.docker.internal to host-gateway
@@ -94,7 +95,7 @@ fi
 docker run --rm --user root ${EXTRA_HOST} --shm-size=1g \
   -v "${PWD}":/work -w /work \
   -e E2E_DB_HOST="${DB_HOST}" -e E2E_DB_PORT="${DB_PORT}" \
-  -e E2E_DB_WAIT_MS -e E2E_HEALTH_TIMEOUT_MS -e E2E_WEBSERVER_TIMEOUT_MS \
+  -e E2E_DB_WAIT_MS -e E2E_HEALTH_TIMEOUT_MS -e E2E_HEALTH_POLL_MS -e E2E_WEBSERVER_TIMEOUT_MS \
   -e SPRING_DATASOURCE_URL="jdbc:mariadb://${DB_HOST}:${DB_PORT}/goldmanager" \
   -p 8080:8080 \
   "${IMAGE}" bash -lc '
@@ -120,15 +121,27 @@ JAVA_OPTS="-Dspring.profiles.active=dev -DAPP_DEFAULT_USER=admin -DAPP_DEFAULT_P
 (java ${JAVA_OPTS} -jar "${JAR}" >/work/e2e/app.log 2>&1 &) 
 
 echo "[e2e-docker] Waiting for app health endpoint ..."
-deadline=$((SECONDS + ${E2E_HEALTH_TIMEOUT_MS:-600000} / 1000))
-until curl -sf http://localhost:8080/api/health >/dev/null 2>&1; do
-  if (( SECONDS > deadline )); then
-    echo "[e2e-docker] App failed to become healthy in time" >&2
-    tail -n 200 /work/e2e/app.log || true
-    exit 1
+HEALTH_TIMEOUT_MS=${E2E_HEALTH_TIMEOUT_MS:-600000}
+HEALTH_POLL_MS=${E2E_HEALTH_POLL_MS:-1000}
+MAX_ATTEMPTS=$(( (HEALTH_TIMEOUT_MS + HEALTH_POLL_MS - 1) / HEALTH_POLL_MS ))
+POLL_SLEEP=$(awk "BEGIN { printf \"%.3f\", ${HEALTH_POLL_MS}/1000 }")
+READY=0
+for i in $(seq 1 ${MAX_ATTEMPTS}); do
+  if curl -sf http://localhost:8080/api/health >/dev/null 2>&1; then
+    READY=1
+    break
   fi
-  sleep 2
+  if [ ${i} -lt ${MAX_ATTEMPTS} ]; then
+    sleep "${POLL_SLEEP}"
+  fi
 done
+
+if [ ${READY} -ne 1 ]; then
+  echo "[e2e-docker] App failed to become healthy within ${HEALTH_TIMEOUT_MS}ms" >&2
+  tail -n 200 /work/e2e/app.log || true
+  exit 1
+fi
+
 echo "[e2e-docker] App is healthy; running Playwright tests ..."
 
 cd /work/e2e

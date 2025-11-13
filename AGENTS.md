@@ -97,7 +97,8 @@ Include any relevant outputs in the PR description.
 - Use shell script to run in docker. This also sets up playwright in a docker container and runs a build of backend and frontend.
   - `./e2e/run-in-docker.sh`
 - The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
- 
+- GitHub Actions no longer runs the dedicated `e2e-playwright.yml` workflow, so these checks only run when you trigger them manually (locally or via custom CI jobs).
+
 ### Preferred E2E Execution for Agents (network-restricted)
 
 Use the helper script `e2e/run-in-docker-agent.sh`. It runs tests fully inside the prebuilt Playwright Docker image while reusing the already-built backend JAR and the host E2E MariaDB. This avoids in-container downloads and host browser dependencies.
