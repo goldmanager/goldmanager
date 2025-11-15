@@ -14,6 +14,7 @@ DOCKER_BUILDKIT=1 docker build --sbom=goldmanager.sbom.json --provenance=mode=ma
 ```
 
 The resulting files `goldmanager.sbom.json` and `provenance.json` are written to the current directory. The image also contains a combined SBOM at `/bom/image.cdx.json`.
+The runtime stage now uses the Debian-based Temurin JRE image (instead of Alpine) so Docker containers start cleanly even on PaX/Grsecurity hardened hosts that forbid executable memory mappings.
 Please see also https://github.com/goldmanager/goldmanager-dockercompose for an example on usage with docker compose
 
 ## Development setup
@@ -41,6 +42,15 @@ npm test   # or: npm run test:ui
 ```
 
 The Playwright runner will build the frontend, build the backend JAR and start the app at `http://localhost:8080` before executing tests.
+
+For a fully containerized workflow (used by both developers and CI agents) run:
+
+```bash
+./e2e/run-in-docker.sh             # builds goldmanager:latest locally
+./e2e/run-in-docker.sh --app-image my/app:tag
+```
+
+The script ensures the dedicated MariaDB from `e2e/dev-db/compose.yaml` is up, (re)builds the backend Docker image when no `--app-image` is provided, starts the container on port 8080, and then runs Playwright inside `goldmanager/e2e-playwright:local` against `http://host.docker.internal:8080`.
 
 ## Configuration
 
