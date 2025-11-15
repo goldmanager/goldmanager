@@ -94,90 +94,45 @@ Include any relevant outputs in the PR description.
 
 ### E2E (Playwright)
 - Location: `e2e/`.
-- Use shell script to run in docker. This also sets up playwright in a docker container and runs a build of backend and frontend.
-  - `./e2e/run-in-docker.sh`
-- The Playwright config ensures DB readiness, builds frontend, builds backend JAR, and starts the Spring Boot app before tests at `http://localhost:8080`.
+- Run `./e2e/run-in-docker.sh` to execute the suite inside the Playwright Docker image. The same script is used by humans and agents.
+- The runner ensures the dedicated MariaDB from `e2e/dev-db/compose.yaml` is healthy, (re)builds the backend Docker image `goldmanager:latest` when no target is provided, starts that image as a container, and then launches Playwright tests against `http://host.docker.internal:8080`.
+- Passing `--app-image <image:tag>` allows testing any already-built Docker image without rebuilding the local Dockerfile.
 - GitHub Actions no longer runs the dedicated `e2e-playwright.yml` workflow, so these checks only run when you trigger them manually (locally or via custom CI jobs).
 
-### Preferred E2E Execution for Agents (network-restricted)
+Dockerized runner capabilities:
+- `--clean-db` performs `docker compose down -v` before `up -d` for the E2E DB.
+- `--fix-perms`, `--fix-perms-backend`, and `--fix-perms-reports` repair ownership on `backend/build` and/or the Playwright report folders.
+- `--app-image` selects the backend image; omit to let the script build `goldmanager:latest` from the repository root Dockerfile.
+- `--verbose` enables extra logging inside the Playwright container and prints backend logs on failure.
+- Extra Playwright CLI flags can be passed after `--`, e.g. `bash ./e2e/run-in-docker.sh -- --project=chromium`.
 
-Use the helper script `e2e/run-in-docker-agent.sh`. It runs tests fully inside the prebuilt Playwright Docker image while reusing the already-built backend JAR and the host E2E MariaDB. This avoids in-container downloads and host browser dependencies.
-
-Wrapper capabilities:
-- Starts E2E MariaDB (or resets it with `--clean-db`).
-- Optionally builds the backend JAR on host (`--build-jar`) with CycloneDX disabled.
-- Fixes permission issues on host artifacts (`--fix-perms`, `--fix-perms-backend`, `--fix-perms-reports`).
-- Runs the backend JAR inside the Playwright image and waits for `GET /api/health`.
-- Executes Playwright using `e2e/playwright.no-server.config.ts`.
-- For quick reference: `bash ./e2e/run-in-docker-agent.sh --help` prints usage, options and examples.
-- Use `--verbose` to print additional logs (enables shell xtrace in the container and tails the backend app.log on failures).
-
-Prerequisites:
-- E2E DB is up on the host (MariaDB): `docker compose -f e2e/dev-db/compose.yaml up -d`
-- Backend JAR is already built on the host at `backend/build/libs/*.jar` (non `-plain`). If not present, build it outside the restricted agent: `cd backend && ./gradlew bootJar`.
-- Playwright image exists: `goldmanager/e2e-playwright:local` (build once if missing: `docker build -f e2e/Dockerfile -t goldmanager/e2e-playwright:local .`).
-- E2E dependencies installed once on host (to avoid network in container): `cd e2e && npm ci`
-  - Note: If you previously built the backend inside a container, `backend/build` files may be owned by root. If `--build-jar` fails with permission errors, fix ownership: `sudo chown -R "$USER":"$USER" backend/build`.
-
-Run tests (all browsers) from the repo root:
+Examples:
 
 ```
-bash ./e2e/run-in-docker-agent.sh
-```
-
-Examples with extra args (passed to Playwright):
-
-```
-# Only Chromium
-bash ./e2e/run-in-docker-agent.sh -- --project=chromium
-
-# Single spec with UI
-bash ./e2e/run-in-docker-agent.sh -- tests/user-management.spec.ts --ui
-
-# Build backend JAR first, then run all tests
-bash ./e2e/run-in-docker-agent.sh --build-jar
-
-# Fix permissions on backend/build and report dirs, then run Chromium only
-bash ./e2e/run-in-docker-agent.sh --fix-perms -- --project=chromium
-
-# Only fix backend/build permissions, then run Chromium
-bash ./e2e/run-in-docker-agent.sh --fix-perms-backend -- --project=chromium
-
-# Only fix report directories, then run Chromium
-bash ./e2e/run-in-docker-agent.sh --fix-perms-reports -- --project=chromium
-
-# Force a full clean E2E DB (down -v; up -d) before tests
-bash ./e2e/run-in-docker-agent.sh --clean-db
-
-# Verbose run to aid debugging
-bash ./e2e/run-in-docker-agent.sh --verbose -- --project=chromium
-
-To see all options at any time:
-
-```
-bash ./e2e/run-in-docker-agent.sh --help
-```
+bash ./e2e/run-in-docker.sh                       # build/use goldmanager:latest locally
+bash ./e2e/run-in-docker.sh --app-image my/app:1.2
+bash ./e2e/run-in-docker.sh --clean-db -- --project=chromium
+bash ./e2e/run-in-docker.sh --fix-perms-reports -- --ui tests/login.spec.ts
+bash ./e2e/run-in-docker.sh --verbose -- --project=chromium tests/login.spec.ts
 ```
 
 Notes:
-- The config `e2e/playwright.no-server.config.ts` disables Playwright’s webServer and uses the container-local app at `http://localhost:8080`. You can override `baseURL` by setting `E2E_BASE_URL` in that config if needed.
+- The config `e2e/playwright.no-server.config.ts` disables Playwright’s webServer and honors the `E2E_BASE_URL` env. The Docker runner exports `E2E_BASE_URL=http://host.docker.internal:8080` so the Playwright container can reach the backend container via the host-gateway bridge. Override the env to point at alternate deployments if needed.
 - The script ensures test report directories are writable on the bind mount to avoid EACCES on `.last-run.json`.
+- The runtime stage relies on the Debian-based Temurin JRE instead of the Alpine variant so the backend container can start even on PaX/Grsecurity hardened hosts that forbid executable memory mappings.
 - E2E DB management:
-  - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (default port 3317).
-  - The Docker runner ensures a clean DB before tests. Default is a fast SQL reset (drop/recreate `goldmanager` DB for user `myuser`). Set `E2E_DB_RESET_MODE=compose` to perform a full `docker compose down -v && up -d` reset.
+  - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (mapped to host port 3317).
+  - The runner keeps the stack up and performs a fast SQL drop/recreate of the `goldmanager` schema for user `myuser` by default. Set `E2E_DB_RESET_MODE=compose` for a full `docker compose down -v && up -d` reset.
 - Image versioning:
-  - The E2E Docker image preinstalls Playwright browsers. Override version via env, e.g.: `PLAYWRIGHT_VERSION=1.55.0 ./e2e/run-in-docker.sh`.
-  - The build arg `PLAYWRIGHT_VERSION` is passed to `e2e/Dockerfile` to align the image with the test runner.
+  - The Playwright Docker image preinstalls browsers. Override its tag via `PLAYWRIGHT_VERSION`, e.g.: `PLAYWRIGHT_VERSION=1.55.0 ./e2e/run-in-docker.sh`.
+  - The backend image defaults to `goldmanager:latest`; supply `--app-image` (or `APP_IMAGE` env) to reuse/pull an alternative image without rebuilding.
 - Reliability env vars for slow first runs/fresh DBs:
   - `E2E_DB_WAIT_MS` (default 360000): Max wait for MariaDB TCP readiness.
   - `E2E_HEALTH_TIMEOUT_MS` (default 600000): Max wait for app health endpoint.
   - `E2E_WEBSERVER_TIMEOUT_MS` (default 720000): Playwright webServer readiness timeout.
 - Example: `tests/login.spec.ts` performs a login with default credentials.
  - Readiness is based on `GET /api/health` which is public and returns `{ "status": "ok" }`.
- - Config:
-   - DB overrides: `E2E_DB_HOST` (default `localhost`), `E2E_DB_PORT` (default `3307`).
-   - Frontend install prefers `npm ci` when `package-lock.json` is present.
-    - Docker auto-start for the dev DB runs only when the DB host is local (`localhost`, `127.0.0.1`, or `::1`).
+ - Config overrides for the DB connection seen inside containers: `E2E_DB_HOST` (default `host.docker.internal`), `E2E_DB_PORT` (default `3317`). Frontend dependencies still prefer `npm ci` when `package-lock.json` is present.
 
 ## Commit Guidelines
 Use concise commit messages that start with a short imperative summary.

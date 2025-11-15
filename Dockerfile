@@ -34,9 +34,12 @@ COPY --from=build-frontend /app/bom-frontend.cdx.json ./bom-frontend.cdx.json
 # anchore/syft is a distroless image where the binary is located at /syft
 RUN ["/syft", "dir:.", "-o", "cyclonedx-json=image.cdx.json"]
 
-FROM eclipse-temurin:21-jre-alpine as runtime
+FROM eclipse-temurin:21-jre as runtime
 
 WORKDIR /opt/goldmanager
+
+# Debian-based Temurin JVM avoids the PaX/Grsecurity mprotect restrictions
+# that prevent the Alpine variant from starting on hardened hosts.
 
 COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager/app.jar
 
