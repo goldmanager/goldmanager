@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.entity.MaterialHistory;
 import com.my.goldmanager.repository.MaterialHistoryRepository;

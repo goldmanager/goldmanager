@@ -14,7 +14,6 @@
  */
 package com.my.goldmanager.service;
 
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -31,8 +30,7 @@ import com.my.goldmanager.repository.MaterialRepository;
 import com.my.goldmanager.service.exception.ValidationException;
 @Service
 public class MaterialService {
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
-			.withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_INSTANT;
 	private static final long MAX_ENTRY_DATE_GRACE_PERIOD = 60 * 1000;
 
 	@Autowired
@@ -115,6 +113,6 @@ public class MaterialService {
 	}
 
 	private static String formatDateToUTC(Date date) {
-		return dtf.format(date.toInstant()) + "+00:00";
+		return dtf.format(date.toInstant());
 	}
 }

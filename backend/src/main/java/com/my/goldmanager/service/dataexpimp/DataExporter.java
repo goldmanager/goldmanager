@@ -21,8 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.entity.ItemType;
@@ -97,7 +97,7 @@ public class DataExporter {
 			return result;
 		} catch (VersionLoadingException e) {
 			throw new ExportDataException("Can not load version information for exported data.", e);
-		} catch (JsonProcessingException e) {
+		} catch (JacksonException e) {
 			throw new ExportDataException("Serialisation of exported entities has failed", e);
 		} catch (InvalidAlgorithmException e) {
 			throw new ExportDataException("Hash generation for exported data has failed", e);

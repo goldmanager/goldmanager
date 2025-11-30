@@ -17,9 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Unit;
 import com.my.goldmanager.repository.UnitRepository;
 
@@ -91,7 +91,7 @@ public class UnitControllerSpringBootTest {
 	}
 
 	@Test
-	public void testCreate() throws JsonProcessingException, Exception {
+	public void testCreate() throws JacksonException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName("gramm");
 		gramm.setFactor(1.0f / 31.1034768f);
@@ -103,7 +103,7 @@ public class UnitControllerSpringBootTest {
 	}
 
 	@Test
-	public void testInvalidCreateEmptyName() throws JsonProcessingException, Exception {
+	public void testInvalidCreateEmptyName() throws JacksonException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName("");
 		gramm.setFactor(1.0f / 31.1034768f);
@@ -118,7 +118,7 @@ public class UnitControllerSpringBootTest {
 	}
 
 	@Test
-	public void testInvalidCreateNullName() throws JsonProcessingException, Exception {
+	public void testInvalidCreateNullName() throws JacksonException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName(null);
 		gramm.setFactor(1.0f / 31.1034768f);
@@ -132,7 +132,7 @@ public class UnitControllerSpringBootTest {
 		assertEquals("Unit name is mandatory.", errorResponse.getMessage());
 	}
 	@Test
-	public void testUpdate() throws JsonProcessingException, Exception {
+	public void testUpdate() throws JacksonException, Exception {
 		Unit gramm = new Unit();
 		gramm.setName("gramm");
 		gramm.setFactor(1.0f);
@@ -147,7 +147,7 @@ public class UnitControllerSpringBootTest {
 	}
 
 	@Test
-	public void testDelete() throws JsonProcessingException, Exception {
+	public void testDelete() throws JacksonException, Exception {
 		Unit unit = new Unit();
 		unit.setName("OZ");
 		unit.setFactor(1);

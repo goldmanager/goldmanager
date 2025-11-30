@@ -22,7 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.entity.ItemType;
