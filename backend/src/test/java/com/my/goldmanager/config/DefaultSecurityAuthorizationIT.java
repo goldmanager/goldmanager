@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import com.my.goldmanager.repository.UserLoginRepository;
 import com.my.goldmanager.service.AuthKeyInfoService;
@@ -51,8 +50,6 @@ class DefaultSecurityAuthorizationIT {
             return source;
         }
 
-        @Bean(name = "mvcHandlerMappingIntrospector")
-        HandlerMappingIntrospector mvcHandlerMappingIntrospector() { return new HandlerMappingIntrospector(); }
     }
 
     @Autowired
