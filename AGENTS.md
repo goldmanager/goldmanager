@@ -2,10 +2,10 @@
 
 This repository contains two sub-projects:
 
-* **backend/** – Spring Boot application built with Gradle. Java 21 is required.
+* **backend/** – Spring Boot application built with Gradle. Java 25 is required.
 * **frontend/** – Vue 3 SPA built with Node (tested with Node 20).
   Use Node.js 20 for local development to match the CI environment.
-* **e2e/** – Playwright end-to-end tests. Requires Node 20 and Java 21. Recommended to run inside the official Playwright Docker image via `./e2e/run-in-docker.sh` which installs JDK 21 in the container, maps the host DB, and sets extended timeouts for fresh DB initialization. HTML reports are written to `e2e/test-results-html/`; quick status is in `e2e/test-results/.last-run.json`.
+* **e2e/** – Playwright end-to-end tests. Requires Node 20 and Java 25. Recommended to run inside the official Playwright Docker image via `./e2e/run-in-docker.sh` which installs JDK 25 in the container, maps the host DB, and sets extended timeouts for fresh DB initialization. HTML reports are written to `e2e/test-results-html/`; quick status is in `e2e/test-results/.last-run.json` when the host bind mount is writable. Pass `--results-in-container` (or allow the script to auto-fallback) to keep reports inside the container when host writes are restricted.
 
 ## Response Protocol
 
@@ -118,7 +118,8 @@ bash ./e2e/run-in-docker.sh --verbose -- --project=chromium tests/login.spec.ts
 
 Notes:
 - The config `e2e/playwright.no-server.config.ts` disables Playwright’s webServer and honors the `E2E_BASE_URL` env. The Docker runner exports `E2E_BASE_URL=http://host.docker.internal:8080` so the Playwright container can reach the backend container via the host-gateway bridge. Override the env to point at alternate deployments if needed.
-- The script ensures test report directories are writable on the bind mount to avoid EACCES on `.last-run.json`.
+- The script prefers writing reports to `e2e/test-results*` on the host. When those paths are not writable (or when `--results-in-container` is passed) it falls back to storing reports inside the container, in which case artifacts remain inside the container filesystem.
+- On SELinux hosts the script automatically mounts the workspace with `:z` so containers can read the bind mount; override via `E2E_VOLUME_SUFFIX=none` or supply another suffix value.
 - The runtime stage relies on the Debian-based Temurin JRE instead of the Alpine variant so the backend container can start even on PaX/Grsecurity hardened hosts that forbid executable memory mappings.
 - E2E DB management:
   - Dedicated MariaDB runs via `e2e/dev-db/compose.yaml` (mapped to host port 3317).

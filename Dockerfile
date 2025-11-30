@@ -16,34 +16,40 @@ COPY frontend ./
 
 RUN npm run build
 
-FROM gradle:9-jdk21 as build-backend
+FROM eclipse-temurin:25-jdk as build-backend
 
-WORKDIR /home/gradle/project
+WORKDIR /workspace
 
-COPY backend .
+RUN apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build-frontend /app/dist /home/gradle/project/src/main/resources/static
+COPY backend/ ./
 
-RUN gradle clean bootJar cyclonedxBom -PskipTests
+COPY --from=build-frontend /app/dist /workspace/src/main/resources/static
+
+RUN chmod +x gradlew
+
+RUN ./gradlew clean bootJar cyclonedxBom -PskipTests
 
 FROM ${SYFT_IMAGE} as generate-sbom
 WORKDIR /work
-COPY --from=build-backend /home/gradle/project/build/libs/*.jar ./app.jar
-COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json ./application.cdx.json
+COPY --from=build-backend /workspace/build/libs/*.jar ./app.jar
+COPY --from=build-backend /workspace/build/reports/application.cdx.json ./application.cdx.json
 COPY --from=build-frontend /app/bom-frontend.cdx.json ./bom-frontend.cdx.json
 # anchore/syft is a distroless image where the binary is located at /syft
 RUN ["/syft", "dir:.", "-o", "cyclonedx-json=image.cdx.json"]
 
-FROM eclipse-temurin:21-jre as runtime
+FROM eclipse-temurin:25-jre as runtime
 
 WORKDIR /opt/goldmanager
 
 # Debian-based Temurin JVM avoids the PaX/Grsecurity mprotect restrictions
 # that prevent the Alpine variant from starting on hardened hosts.
 
-COPY --from=build-backend /home/gradle/project/build/libs/*.jar /opt/goldmanager/app.jar
+COPY --from=build-backend /workspace/build/libs/*.jar /opt/goldmanager/app.jar
 
-COPY --from=build-backend /home/gradle/project/build/reports/application.cdx.json /bom/application.cdx.json
+COPY --from=build-backend /workspace/build/reports/application.cdx.json /bom/application.cdx.json
 COPY --from=build-frontend /app/bom-frontend.cdx.json /bom/frontend.cdx.json
 
 FROM runtime

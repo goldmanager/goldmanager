@@ -4,7 +4,7 @@ This folder contains Playwright-based E2E tests for GoldManager. Tests run again
 
 ## Prerequisites
 - Node.js 20+
-- Java 21+
+- Java 25+
 - Docker (to start MariaDB for development)
 
 The launcher tries to auto-start the dev MariaDB using Docker Compose. If Docker
@@ -62,13 +62,14 @@ What the script does:
 - Ensures the dedicated MariaDB from `e2e/dev-db/compose.yaml` is running and performs a fast SQL drop/recreate of the `goldmanager` schema (set `E2E_DB_RESET_MODE=compose` for a full `down -v` reset).
 - Builds the backend Docker image `goldmanager:latest` from the repo root when no target image is provided, then starts that container on host port 8080 with the dev profile and default user credentials exposed via env.
 - The runtime stage uses the Debian-based Temurin JRE to avoid the PaX/Grsecurity restrictions that prevented the Alpine variant from starting on hardened hosts.
-- Launches the Playwright Docker image (prebuilt locally as `goldmanager/e2e-playwright:local`) which installs JDK 21, reuses `e2e/node_modules` when present, and runs the tests against `E2E_BASE_URL=http://host.docker.internal:8080`.
+- Launches the Playwright Docker image (prebuilt locally as `goldmanager/e2e-playwright:local`) which installs JDK 25, reuses `e2e/node_modules` when present, and runs the tests against `E2E_BASE_URL=http://host.docker.internal:8080`.
 
 Useful flags:
 - `--app-image <image[:tag]>` – use an already-built backend image instead of rebuilding `goldmanager:latest`.
 - `--clean-db` – force `docker compose down -v` before `up -d` for the E2E database stack.
 - `--fix-perms`, `--fix-perms-backend`, `--fix-perms-reports` – repair ownership for `backend/build` and/or the Playwright report folders when previous container runs created root-owned files.
 - `--verbose` – enables extra logging in the Playwright container and prints the backend logs on failure.
+- `--results-in-container` – skip writing Playwright reports to the host bind mount and keep them inside the container (automatically used as a fallback when the host is read-only).
 - Extra Playwright CLI args go after `--`, e.g. `./e2e/run-in-docker.sh -- --project=chromium`.
 
 Timeout helpers for cold starts:
@@ -83,13 +84,15 @@ Playwright version:
 
 ## Results & Reports
 
-- Quick status: the last run summary is written to `e2e/test-results/.last-run.json`.
+- Quick status: the last run summary is written to `e2e/test-results/.last-run.json` when the host bind mount allows writes (default behaviour).
   - Example: `cat e2e/test-results/.last-run.json`
-- HTML report: generated under `e2e/test-results-html/`.
+- HTML report: generated under `e2e/test-results-html/` when host storage is available.
   - Open via Playwright: `cd e2e && npx playwright show-report ./test-results-html` or `npm run report`
-- JSON report: `e2e/test-results/report.json`.
+- JSON report: `e2e/test-results/report.json` on the host.
+- When host writes are not possible (e.g., SELinux enforced mounts) specify `--results-in-container` or let the script auto-fallback; reports will stay under `/tmp/e2e/test-results*` inside the Playwright container and won't be copied back automatically.
 - Traces/videos: traces are collected for all tests, videos/screenshots are kept on failures.
 
 ## Notes
 - The first Gradle run may take a few minutes to download wrappers and dependencies.
 - Ensure MariaDB is up before running tests; otherwise the backend cannot start with the `dev` profile.
+- On SELinux hosts the runner automatically mounts the repo with `:z` so containers can read/write the bind mount. Override via `E2E_VOLUME_SUFFIX=none` (disable) or `E2E_VOLUME_SUFFIX=Z` (custom option).
