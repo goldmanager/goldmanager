@@ -21,9 +21,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.entity.ItemType;
@@ -220,7 +220,7 @@ public class ItemControllerSpringBootTest {
 	}
 
 	@Test
-	public void testCreate() throws JsonProcessingException, Exception {
+	public void testCreate() throws JacksonException, Exception {
 		Item goldBarItem = new Item();
 		goldBarItem.setItemType(goldBar);
 		goldBarItem.setUnit(oz);
@@ -234,7 +234,7 @@ public class ItemControllerSpringBootTest {
 	}
 
 	@Test
-	public void testDelete() throws JsonProcessingException, Exception {
+	public void testDelete() throws JacksonException, Exception {
 		Item goldBarItem = new Item();
 		goldBarItem.setItemType(goldBar);
 		goldBarItem.setUnit(oz);
@@ -254,7 +254,7 @@ public class ItemControllerSpringBootTest {
 	}
 
 	@Test
-	public void testUpdate() throws JsonProcessingException, Exception {
+	public void testUpdate() throws JacksonException, Exception {
 		Item goldBarItem = new Item();
 		goldBarItem.setItemType(goldBar);
 		goldBarItem.setUnit(oz);
@@ -275,7 +275,7 @@ public class ItemControllerSpringBootTest {
 	}
 
 	@Test
-	public void testGet() throws JsonProcessingException, Exception {
+	public void testGet() throws JacksonException, Exception {
 		Item goldBarItem = new Item();
 		goldBarItem.setItemType(goldBar);
 		goldBarItem.setUnit(oz);
