@@ -13,7 +13,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import com.my.goldmanager.service.CustomUserDetailsService;
 import com.my.goldmanager.repository.UserLoginRepository;
@@ -53,10 +52,6 @@ class DefaultSecurityConfigurationIntegrationTest {
             return source;
         }
 
-        @Bean(name = "mvcHandlerMappingIntrospector")
-        HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-            return new HandlerMappingIntrospector();
-        }
     }
 
     @Autowired
