@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import com.my.goldmanager.encoder.PasswordEncoderImpl;
 import com.my.goldmanager.service.CustomUserDetailsService;
@@ -46,6 +47,8 @@ import lombok.RequiredArgsConstructor;
 @Profile({"default", "dev"})
 public class DefaultSecurityConfiguration {
 
+	private static final PathPatternRequestMatcher.Builder MVC_MATCHER = PathPatternRequestMatcher.withDefaults();
+
 
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
@@ -54,26 +57,34 @@ public class DefaultSecurityConfiguration {
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
        @Bean
-       public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-               http.cors(cors -> cors.configure(http))
-                               .csrf(csrf -> csrf
-                                               .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                               .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
-                                               .ignoringRequestMatchers("/api/auth/login"))
-                               .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                               .authorizeHttpRequests(
-                                               requests -> requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                                .requestMatchers("/api/health").permitAll()
-                                                                .requestMatchers("/api/auth/login").permitAll()
-                                                                .requestMatchers("/api/auth/csrf").permitAll()
-                                                                .requestMatchers(HttpMethod.GET, "/api/dataimport/status").permitAll()
-                                                                .requestMatchers("/api/**").authenticated()
-                                                                .anyRequest().permitAll())
-                               .httpBasic(httpBasic -> httpBasic.disable())
-                               .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+	       public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	               http.cors(cors -> cors.configure(http))
+			               .csrf(csrf -> csrf
+				               	.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+				               	.csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
+				               	.ignoringRequestMatchers(mvcMatcher("/api/auth/login")))
+			               .sessionManagement(sessionMgmt -> sessionMgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			               .authorizeHttpRequests(
+			                               requests -> requests.requestMatchers(mvcMatcher(HttpMethod.OPTIONS, "/**")).permitAll()
+						                        .requestMatchers(mvcMatcher("/api/health")).permitAll()
+						                        .requestMatchers(mvcMatcher("/api/auth/login")).permitAll()
+						                        .requestMatchers(mvcMatcher("/api/auth/csrf")).permitAll()
+						                        .requestMatchers(mvcMatcher(HttpMethod.GET, "/api/dataimport/status")).permitAll()
+						                        .requestMatchers(mvcMatcher("/api/**")).authenticated()
+						                        .anyRequest().permitAll())
+			               .httpBasic(httpBasic -> httpBasic.disable())
+			               .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
+	}
+
+	private static PathPatternRequestMatcher mvcMatcher(String pattern) {
+		return MVC_MATCHER.matcher(pattern);
+	}
+
+	private static PathPatternRequestMatcher mvcMatcher(HttpMethod method, String pattern) {
+		return MVC_MATCHER.matcher(method, pattern);
 	}
 
 	
