@@ -8,3 +8,6 @@ backend/build
 backend/dev-env
 backend/bin
 backend/src/main/resources/static/
+.jdk-temurin-25/
+e2e/test-results*/
+.jdk-temurin-25/

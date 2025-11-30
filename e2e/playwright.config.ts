@@ -5,6 +5,9 @@ import path from 'node:path';
 
 // Helper: resolve repo root when executed from e2e/
 const root = path.resolve(__dirname, '..');
+const containerResultsDir = process.env.E2E_RESULTS_DIR ?? 'test-results';
+const containerHtmlResultsDir = process.env.E2E_RESULTS_HTML_DIR ?? 'test-results-html';
+const jsonReportPath = path.join(containerResultsDir, 'report.json');
 
 export default defineConfig({
   testDir: path.join(__dirname, 'tests'),
@@ -16,8 +19,8 @@ export default defineConfig({
   retries: 0,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'test-results-html', open: 'never' }],
-    ['json', { outputFile: 'test-results/report.json' }],
+    ['html', { outputFolder: containerHtmlResultsDir, open: 'never' }],
+    ['json', { outputFile: jsonReportPath }],
   ],
   use: {
     baseURL: 'http://localhost:8080',

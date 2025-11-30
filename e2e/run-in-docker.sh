@@ -47,6 +47,7 @@ FIX_PERMS_REPORTS=0
 VERBOSE=0
 SHOW_HELP=0
 PASS_ARGS=()
+RESULTS_STORAGE="${E2E_RESULTS_STORAGE:-host}"
 
 usage() {
   cat <<'USAGE'
@@ -63,6 +64,8 @@ Options:
   --fix-perms-backend        Fix ownership for backend/build only.
   --fix-perms-reports        Fix ownership for e2e/test-results* only.
   --verbose                  Enable verbose logging in the Playwright container.
+  --results-in-container     Force Playwright to store reports inside the container instead of the host bind mount.
+  --results-storage <mode>   Explicitly set report storage mode (host|container). Default: host.
   -h, --help                 Show this help message.
 
 Notes:
@@ -108,6 +111,19 @@ while [[ $# -gt 0 ]]; do
       FIX_PERMS_REPORTS=1
       shift 1
       ;;
+    --results-in-container)
+      RESULTS_STORAGE="container"
+      shift 1
+      ;;
+    --results-storage)
+      [[ $# -ge 2 ]] || { echo "[e2e] Missing value for --results-storage" >&2; exit 1; }
+      RESULTS_STORAGE="$2"
+      shift 2
+      ;;
+    --results-storage=*)
+      RESULTS_STORAGE="${1#*=}"
+      shift 1
+      ;;
     --verbose)
       VERBOSE=1
       shift 1
@@ -141,6 +157,37 @@ E2E_TEST_ARGS="${PASS_ARGS[*]:-}"
 log() {
   echo "[e2e] $*"
 }
+
+case "${RESULTS_STORAGE}" in
+  host|container) ;;
+  *)
+    echo "[e2e] Invalid results storage mode '${RESULTS_STORAGE}'. Use 'host' or 'container'." >&2
+    exit 1
+    ;;
+esac
+
+VOLUME_SUFFIX=""
+VOLUME_SUFFIX_INPUT="${E2E_VOLUME_SUFFIX:-auto}"
+if [[ "${VOLUME_SUFFIX_INPUT}" == "auto" ]]; then
+  if command -v selinuxenabled >/dev/null 2>&1; then
+    if selinuxenabled; then
+      VOLUME_SUFFIX=":z"
+      log "Detected SELinux; using ':z' on workspace bind mount."
+    fi
+  elif [[ -f /sys/fs/selinux/enforce ]]; then
+    VOLUME_SUFFIX=":z"
+    log "Detected SELinux; using ':z' on workspace bind mount."
+  fi
+elif [[ "${VOLUME_SUFFIX_INPUT}" == "none" ]]; then
+  VOLUME_SUFFIX=""
+else
+  if [[ "${VOLUME_SUFFIX_INPUT}" == :* ]]; then
+    VOLUME_SUFFIX="${VOLUME_SUFFIX_INPUT}"
+  else
+    VOLUME_SUFFIX=":${VOLUME_SUFFIX_INPUT}"
+  fi
+fi
+WORKDIR_VOLUME="${PWD}:/work${VOLUME_SUFFIX}"
 
 APP_CONTAINER_STARTED=0
 cleanup() {
@@ -287,12 +334,13 @@ set +e
 RESULT=0
 
 docker run --rm --user root ${EXTRA_HOST} --shm-size=1g \
-  -v "${PWD}":/work -w /work \
+  -v "${WORKDIR_VOLUME}" -w /work \
   -e E2E_DB_HOST="${DB_HOST_CONTAINER}" -e E2E_DB_PORT="${DB_PORT}" \
   -e E2E_DB_WAIT_MS -e E2E_HEALTH_TIMEOUT_MS -e E2E_HEALTH_POLL_MS -e E2E_WEBSERVER_TIMEOUT_MS \
   -e VERBOSE="${VERBOSE}" \
   -e E2E_BASE_URL="${APP_BASE_URL}" \
   -e E2E_TEST_ARGS="${E2E_TEST_ARGS:-}" \
+  -e E2E_RESULTS_STORAGE="${RESULTS_STORAGE}" \
   "${PLAYWRIGHT_IMAGE}" bash -lc '
 set -euo pipefail
 [ "${VERBOSE:-0}" = "1" ] && set -x || true
@@ -303,10 +351,33 @@ else
   echo "[e2e] node_modules missing; running npm ci ..."
   npm ci
 fi
-mkdir -p /work/e2e/test-results /work/e2e/test-results-html
-chown -R root:root /work/e2e/test-results /work/e2e/test-results-html || true
+HOST_RESULTS_DIR="/work/e2e/test-results"
+HOST_RESULTS_HTML="/work/e2e/test-results-html"
+CONTAINER_RESULTS_DIR="/tmp/e2e/test-results"
+CONTAINER_RESULTS_HTML="/tmp/e2e/test-results-html"
+ACTIVE_RESULTS_DIR="${HOST_RESULTS_DIR}"
+ACTIVE_RESULTS_HTML="${HOST_RESULTS_HTML}"
+USE_CONTAINER_RESULTS=0
 
-echo "[e2e] Running Playwright tests ..."
+if [ "${E2E_RESULTS_STORAGE:-host}" = "container" ]; then
+  USE_CONTAINER_RESULTS=1
+else
+  if ! { mkdir -p "${HOST_RESULTS_DIR}" "${HOST_RESULTS_HTML}" && \
+         chown -R root:root "${HOST_RESULTS_DIR}" "${HOST_RESULTS_HTML}"; }; then
+    echo "[e2e] Host report directories unavailable; storing reports inside the container."
+    USE_CONTAINER_RESULTS=1
+  fi
+fi
+
+if [ "${USE_CONTAINER_RESULTS}" -eq 1 ]; then
+  ACTIVE_RESULTS_DIR="${CONTAINER_RESULTS_DIR}"
+  ACTIVE_RESULTS_HTML="${CONTAINER_RESULTS_HTML}"
+  mkdir -p "${ACTIVE_RESULTS_DIR}" "${ACTIVE_RESULTS_HTML}"
+fi
+
+export E2E_RESULTS_DIR="${ACTIVE_RESULTS_DIR}"
+export E2E_RESULTS_HTML_DIR="${ACTIVE_RESULTS_HTML}"
+echo "[e2e] Running Playwright tests (reports: ${E2E_RESULTS_DIR}; html: ${E2E_RESULTS_HTML_DIR}) ..."
 node node_modules/@playwright/test/cli.js test --config=playwright.no-server.config.ts ${E2E_TEST_ARGS:-}
 '
 RESULT=$?
