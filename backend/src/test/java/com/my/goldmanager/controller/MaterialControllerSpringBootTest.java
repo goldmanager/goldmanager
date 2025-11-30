@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedList;
@@ -25,9 +24,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.entity.MaterialHistory;
 import com.my.goldmanager.repository.MaterialHistoryRepository;
@@ -125,7 +124,7 @@ class MaterialControllerSpringBootTest {
 
 
 	@Test
-	void testCreateInvalidDate() throws JsonProcessingException, Exception {
+	void testCreateInvalidDate() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -143,7 +142,7 @@ class MaterialControllerSpringBootTest {
 
 
 	@Test
-	void testCreate() throws JsonProcessingException, Exception {
+	void testCreate() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -163,7 +162,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testCreatePriceSmall() throws JsonProcessingException, Exception {
+	void testCreatePriceSmall() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(0.01f);
@@ -183,7 +182,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testCreatePriceZero() throws JsonProcessingException, Exception {
+	void testCreatePriceZero() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(0);
@@ -198,7 +197,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testCreatePriceNegative() throws JsonProcessingException, Exception {
+	void testCreatePriceNegative() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(-0.01f);
@@ -213,7 +212,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testCreateAndUpdateWithMaterialHistory() throws JsonProcessingException, UnsupportedEncodingException, Exception {
+	void testCreateAndUpdateWithMaterialHistory() throws JacksonException, UnsupportedEncodingException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -264,7 +263,7 @@ class MaterialControllerSpringBootTest {
 	}
 	
 	@Test
-	void testDelete() throws JsonProcessingException, Exception {
+	void testDelete() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -279,7 +278,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testDeleteWithistory() throws JsonProcessingException, Exception {
+	void testDeleteWithistory() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -300,7 +299,7 @@ class MaterialControllerSpringBootTest {
 
 	}
 	@Test
-	void testUpdateDateInFuture() throws JsonProcessingException, Exception {
+	void testUpdateDateInFuture() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -325,7 +324,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdatePriceZero() throws JsonProcessingException, Exception {
+	void testUpdatePriceZero() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -346,7 +345,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdatePriceNegative() throws JsonProcessingException, Exception {
+	void testUpdatePriceNegative() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -367,7 +366,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdatePriceSmall() throws JsonProcessingException, Exception {
+	void testUpdatePriceSmall() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -398,7 +397,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdateWithInvalidDate() throws JsonProcessingException, Exception {
+	void testUpdateWithInvalidDate() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -427,7 +426,7 @@ class MaterialControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdateWithoutNewDate() throws JsonProcessingException, Exception {
+	void testUpdateWithoutNewDate() throws JacksonException, Exception {
 		Material material = new Material();
 		material.setName("gold");
 		material.setPrice(100.1f);
@@ -460,7 +459,6 @@ class MaterialControllerSpringBootTest {
 	}
 
 	static String formatDateToUTC(Date date) {
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
-		return dtf.format(date.toInstant()) + "+00:00";
+		return DateTimeFormatter.ISO_INSTANT.format(date.toInstant());
 	}
 }

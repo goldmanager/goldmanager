@@ -23,8 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import jakarta.servlet.http.Cookie;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.repository.UserLoginRepository;
 import com.my.goldmanager.rest.request.AuthRequest;
 import com.my.goldmanager.service.AuthKeyInfoService;
@@ -63,7 +63,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-        public void testLoginSuccess() throws JsonProcessingException, Exception {
+        public void testLoginSuccess() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -93,7 +93,7 @@ public class AuthControllerSpringBootTest {
         }
 
 	@Test
-	public void testLoginFailure() throws JsonProcessingException, Exception {
+	public void testLoginFailure() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -105,7 +105,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-	public void testLogout() throws JsonProcessingException, Exception {
+	public void testLogout() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -126,7 +126,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-	public void testRefresh() throws JsonProcessingException, Exception {
+	public void testRefresh() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -166,7 +166,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-	public void testRefreshWithInvalidatedKey() throws JsonProcessingException, Exception {
+	public void testRefreshWithInvalidatedKey() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");
@@ -208,7 +208,7 @@ public class AuthControllerSpringBootTest {
 	}
 
 	@Test
-	public void testRefreshWithRemovedUser() throws JsonProcessingException, Exception {
+	public void testRefreshWithRemovedUser() throws JacksonException, Exception {
 		userService.create("user", "password");
 		AuthRequest authRequest = new AuthRequest();
 		authRequest.setUsername("user");

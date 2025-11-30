@@ -14,7 +14,6 @@
  */
 package com.my.goldmanager.service.dataexpimp;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -26,7 +25,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.github.zafarkhaja.semver.Version;
 import com.my.goldmanager.repository.ItemRepository;
 import com.my.goldmanager.repository.ItemStorageRepository;
@@ -163,7 +163,7 @@ public class DataImporter {
 
 		try {
 			return objectMapper.readValue(data.getExportEntityData(), ExportEntities.class);
-		} catch (IOException e) {
+		} catch (JacksonException e) {
 			throw new ImportDataException("Could not deserialize entities for import", e);
 		}
 	}

@@ -25,9 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Item;
 import com.my.goldmanager.entity.ItemType;
 import com.my.goldmanager.entity.Material;
@@ -259,7 +258,7 @@ class PriceHistoryControllerSpringBootTest {
 	}
 
 	private void testForStartAndEndDate(List<Material> materials)
-			throws UnsupportedEncodingException, Exception, JsonProcessingException, JsonMappingException {
+			throws UnsupportedEncodingException, Exception, JacksonException {
 		for (Material material : materials) {
 
 			List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(material.getId()).reversed();
@@ -308,7 +307,7 @@ class PriceHistoryControllerSpringBootTest {
 	}
 
 	private void testForStartAndEndDateReversed(List<Material> materials)
-			throws UnsupportedEncodingException, Exception, JsonProcessingException, JsonMappingException {
+			throws UnsupportedEncodingException, Exception, JacksonException {
 		for (Material material : materials) {
 
 			List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(material.getId()).reversed();
@@ -357,7 +356,7 @@ class PriceHistoryControllerSpringBootTest {
 	}
 
 	private void testForStartOrEndDate(List<Material> materials, boolean byStartdate)
-			throws UnsupportedEncodingException, Exception, JsonProcessingException, JsonMappingException {
+			throws UnsupportedEncodingException, Exception, JacksonException {
 		for (Material material : materials) {
 
 			List<MaterialHistory> expectedMhs = materialHistoryRepository.findByMaterial(material.getId());

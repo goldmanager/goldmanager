@@ -6,7 +6,7 @@ The package versions were reviewed and updated as of August 2025. No license cla
 
 | Component | License |
 |-----------|--------|
-| Spring Boot and modules | Apache-2.0 |
+| Spring Boot and modules (including spring-boot-liquibase) | Apache-2.0 |
 | Liquibase | Apache-2.0 |
 | JJWT | Apache-2.0 |
 | Bouncy Castle | Bouncy Castle Licence (MIT style) |

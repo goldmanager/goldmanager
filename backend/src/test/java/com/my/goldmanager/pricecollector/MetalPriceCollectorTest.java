@@ -19,6 +19,7 @@ import java.util.TreeMap;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -28,7 +29,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.MockitoAnnotations;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.Material;
 import com.my.goldmanager.repository.MaterialHistoryRepository;
 import com.my.goldmanager.repository.MaterialRepository;
@@ -52,6 +54,8 @@ class MetalPriceCollectorTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	private AutoCloseable mocks;
+
 	@Mock
 	private HttpClient httpClient;
 
@@ -60,6 +64,11 @@ class MetalPriceCollectorTest {
 
 	@Mock
 	private HttpResponse<String> httpResponse;
+
+	@BeforeEach
+	void initMocks() {
+		mocks = MockitoAnnotations.openMocks(this);
+	}
 
 	@Test
 	void testInitWithoutHistory() throws ValidationException, IOException, InterruptedException {
@@ -303,6 +312,12 @@ class MetalPriceCollectorTest {
 	public void cleanUp() {
 		materialHistoryRepository.deleteAll();
 		materialRepository.deleteAll();
+		if (mocks != null) {
+			try {
+				mocks.close();
+			} catch (Exception ignored) {
+			}
+		}
 
 	}
 

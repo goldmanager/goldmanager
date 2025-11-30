@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.rest.request.ImportDataRequest;
 import com.my.goldmanager.rest.response.JobStatusResponse;
 import com.my.goldmanager.service.AuthenticationService;

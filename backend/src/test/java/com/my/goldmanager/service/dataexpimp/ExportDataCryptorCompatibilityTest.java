@@ -15,7 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.service.PasswordPolicyValidationService;
 import com.my.goldmanager.service.entity.ExportData;
 import com.my.goldmanager.service.exception.PasswordValidationException;

@@ -37,9 +37,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.my.goldmanager.entity.ItemStorage;
 import com.my.goldmanager.repository.ItemStorageRepository;
 import com.my.goldmanager.rest.response.ErrorResponse;
@@ -127,7 +127,7 @@ public class ItemStorageControllerSpringBootTest {
 	}
 
 	@Test
-	void testCreateNameAlreadyExisting() throws JsonProcessingException, UnsupportedEncodingException, Exception {
+	void testCreateNameAlreadyExisting() throws JacksonException, UnsupportedEncodingException, Exception {
 		ItemStorage itemStorage = new ItemStorage();
 		itemStorage.setName("MyName");
 		itemStorageRepository.save(itemStorage);
@@ -145,7 +145,7 @@ public class ItemStorageControllerSpringBootTest {
 	@ParameterizedTest
 	@MethodSource("createItemStorageTestParameter")
 	void testCreate(CreateItemStorageTestParameter param)
-			throws JsonProcessingException, UnsupportedEncodingException, Exception {
+			throws JacksonException, UnsupportedEncodingException, Exception {
 		ItemStorage itemStorage = new ItemStorage();
 		itemStorage.setName(param.name);
 		itemStorage.setDescription(param.description);
@@ -174,7 +174,7 @@ public class ItemStorageControllerSpringBootTest {
 	}
 
 	@Test
-	void testUpdateNotExisting() throws JsonProcessingException, Exception {
+	void testUpdateNotExisting() throws JacksonException, Exception {
 		ItemStorage itemStorage = new ItemStorage();
 		itemStorage.setName("MyStorage");
 		itemStorage.setDescription("MyDesc");
@@ -185,7 +185,7 @@ public class ItemStorageControllerSpringBootTest {
 	}
 
 	@Test
-	void testGetNotExisting() throws JsonProcessingException, Exception {
+	void testGetNotExisting() throws JacksonException, Exception {
 
 		mockMvc.perform(TestHTTPClient.doGet("/api/itemStorages/myId0")).andExpect(status().isNotFound());
 	}
@@ -244,7 +244,7 @@ public class ItemStorageControllerSpringBootTest {
 		}
 	}
 	@Test
-	void testGet() throws JsonProcessingException, Exception {
+	void testGet() throws JacksonException, Exception {
 
 		ItemStorage expected = new ItemStorage();
 		expected.setDescription("MyDesc");
@@ -263,7 +263,7 @@ public class ItemStorageControllerSpringBootTest {
 	@ParameterizedTest
 	@MethodSource("updateItemstorageTestParameter")
 	void testUpdate(UpdateItemStorageTestParameter param)
-			throws JsonProcessingException, UnsupportedEncodingException, Exception {
+			throws JacksonException, UnsupportedEncodingException, Exception {
 		ItemStorage original = new ItemStorage();
 		original.setName(param.origName);
 		original.setDescription(param.origDescription);
