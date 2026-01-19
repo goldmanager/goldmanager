@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
-    "@babel/eslint-parser": "^7.28.5",
+    "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.28.5",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.17",
