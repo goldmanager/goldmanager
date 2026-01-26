@@ -23,7 +23,7 @@
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.28.6",
     "@vitejs/plugin-vue": "^6.0.3",
-    "@vitest/coverage-v8": "^4.0.17",
+    "@vitest/coverage-v8": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.39.2",
     "jsdom": "^27.4.0",
