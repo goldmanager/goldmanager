@@ -105,7 +105,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-liquibase'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.session:spring-session-core'
-    implementation 'commons-codec:commons-codec:1.20.0'
+    implementation 'commons-codec:commons-codec:1.21.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'com.github.zafarkhaja:java-semver:0.10.2'
 
