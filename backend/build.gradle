@@ -1,10 +1,10 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '4.0.5'
+	id 'org.springframework.boot' version '4.0.6'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.asciidoctor.jvm.convert' version '4.0.5'
 	id 'jacoco' 
-	id 'org.cyclonedx.bom' version '3.2.3'
+	id 'org.cyclonedx.bom' version '3.2.4'
 	id 'eclipse'
 
 }
@@ -13,7 +13,7 @@ import java.util.Properties
 import org.cyclonedx.gradle.CyclonedxAggregateTask
 
 group = 'de.goldmanager'
-version = '1.0.6'
+version = '1.0.7'
 compileJava.options.encoding = 'UTF-8'
 
 // Generate version.properties with configuration-cache friendly task
@@ -105,12 +105,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-liquibase'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.session:spring-session-core'
-    implementation 'commons-codec:commons-codec:1.21.0'
+    implementation 'commons-codec:commons-codec:1.22.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'com.github.zafarkhaja:java-semver:0.10.2'
 
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.83'
-    implementation 'org.bouncycastle:bcpkix-jdk18on:1.83'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.84'
     
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
