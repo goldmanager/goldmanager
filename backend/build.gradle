@@ -13,7 +13,7 @@ import java.util.Properties
 import org.cyclonedx.gradle.CyclonedxAggregateTask
 
 group = 'de.goldmanager'
-version = '1.0.6'
+version = '1.0.7'
 compileJava.options.encoding = 'UTF-8'
 
 // Generate version.properties with configuration-cache friendly task
