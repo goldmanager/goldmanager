@@ -29,7 +29,7 @@
     "jsdom": "^29.1.1",
     "eslint-plugin-vue": "^10.9.1",
     "vite": "^8.0.11",
-    "vitest": "^4.1.4",
+    "vitest": "^4.1.6",
     "vue-eslint-parser": "^10.4.0"
   },
   "overrides": {
