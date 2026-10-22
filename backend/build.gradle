@@ -4,7 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.asciidoctor.jvm.convert' version '4.0.5'
 	id 'jacoco' 
-	id 'org.cyclonedx.bom' version '3.5.0'
+	id 'org.cyclonedx.bom' version '3.5.1'
 	id 'eclipse'
 
 }
@@ -105,7 +105,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-liquibase'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.session:spring-session-core'
-    implementation 'commons-codec:commons-codec:1.22.1'
+    implementation 'commons-codec:commons-codec:1.23.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'com.github.zafarkhaja:java-semver:0.10.2'
 
